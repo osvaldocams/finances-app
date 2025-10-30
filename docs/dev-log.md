@@ -26,6 +26,25 @@ Initial project setup
 - I will also spend some time deciding the next steps.
 
 ---
+## 📅 october 29 2025
+
+### 🧩 Module or section:
+Frontend - router system / main layout
+
+### ⚙️ Tasks done:
+- the routing system with react-router-dom was configured, using a main layout as a layer structure
+- The code that does the layout of the main layout (tsx code and tailwind styling) was written in a beta version
+
+### 🧠 learnings / tecnical decisions:
+- A special branch was created for this feature; updates to the docs are made from this branch, although it will be modified later when it is merged with the main branch.
+
+### ⚠️ Difficulties encountered:
+- I had slight difficulties in the layout design, specifically in making the footer stay at the bottom without creating a scroll bar. I was able to solve this by adding a main div with a CSS grid structure.
+
+### 🎯 Next step:
+- The next step, logically, will be to merge it with the main branch.Additionally, modifications will be made to the docs folder, with a new structure for the developer log.
+
+---
 
 ## 📄 Plantilla para nuevas entradas
 
