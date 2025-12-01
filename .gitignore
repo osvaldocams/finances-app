@@ -1,3 +1,29 @@
 # directories to be ignored
+
 # -------------------------
+# Directorios de Proyectos
+# -------------------------
+# Frontend (Ignorado por su .gitignore interno y por esta línea)
+/frontend/node_modules/ 
+
+# Backend (Ignorado por esta línea)
+/backend/node_modules/ 
+
+# Directorios de Configuración Personal
 .vscode/
+
+# Archivos de Logs, Caché y Temporales
+# ------------------------------------
+*.log
+npm-debug.log*
+yarn-error.log
+
+# Variables de Entorno
+# --------------------
+.env
+.env.local
+
+# Builds (Resultado de la compilación)
+# -------
+dist/
+build/
