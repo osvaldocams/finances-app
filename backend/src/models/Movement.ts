@@ -1,20 +1,13 @@
 import mongoose, {Schema, Document} from "mongoose"
-
-const movementTypesList = ['income', 'expense', 'deposit', 'transfer'] as const
-export type MovementType = typeof movementTypesList[number]
-
-
-const accountTypesList = ['CASH', 'BBVA', 'AZTECA', 'MERCADOPAGO'] as const
-export type AccountType = typeof accountTypesList[number]
-
+import { MovementType, movementTypesList} from "../types";
 
 export interface IMovement extends Document {
     type: MovementType
     date: Date
     amount: number
     description: string
-    incomeAccount?: AccountType
-    expenseAccount?: AccountType
+    incomeAccount?: mongoose.Types.ObjectId
+    expenseAccount?: mongoose.Types.ObjectId
 }
 
 const MovementSchema: Schema = new Schema({
@@ -39,15 +32,23 @@ const MovementSchema: Schema = new Schema({
         trim: true
     },
     incomeAccount: { 
-        type: String, 
-        enum: accountTypesList,  
-        required: false 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "Account",
+        required: function (){return ['income', 'transfer', 'deposit'].includes(this.type)} 
     },
     expenseAccount: { 
-        type: String, 
-        enum: accountTypesList, 
-        required: false 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "Account",
+        required: function (){return ['expense', 'transfer'].includes(this.type)} 
     },
 },{ timestamps: true });
+
+// MovementSchema.pre(/^find/, function(this:mongoose.Query<any,any>, next:any) {
+//     const query = this
+//     query.populate('incomeAccount').populate('expenseAccount')
+//     next(undefined)
+// });
+
 const Movement = mongoose.model<IMovement>('Movement', MovementSchema);
 export default Movement;
+
