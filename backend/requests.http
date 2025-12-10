@@ -1,2 +1,0 @@
-### GET all movements
-GET http://localhost:3000/api/movements
