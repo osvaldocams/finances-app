@@ -62,26 +62,3 @@ export const normalizeAmount = (req: Request<{},{},MovementBody>, res: Response,
     req.body.amount = normalized
     next()
 }
-
-
-
-
-// export const normalizeAmount = (
-//     req: Request<{}, {}, MovementBody>,
-//     res: Response,
-//     next: NextFunction
-// ) => {
-//     const { type, amount } = req.body;
-
-//     if (typeof amount !== "number") {
-//         return res.status(400).json({errors: [{ msg: "Amount must be a number to normalize" }]
-//         })
-//     }
-
-//     const abs = Math.abs(amount);
-
-//     req.body.amount =
-//         type === "expense" ? -abs : abs;
-
-//     next();
-// };

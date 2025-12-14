@@ -60,7 +60,6 @@ export class MovementController {
                 expenseAccount: expenseAccountDoc?._id
             })
             await movement.save({session})
-            await movement.populate(['incomeAccount', 'expenseAccount'])
             //----------
             //4)update accounts balance
             //----------
@@ -133,10 +132,11 @@ export class MovementController {
 
     static getAllMovements = async (req: Request, res: Response) => {
         try {
-            const movements = await Movement.find({}).lean()
+            const movements = await Movement.find({}).populate('incomeAccount expenseAccount').lean()
             res.json(movements)
             
         } catch (error) {
+            console.log(error)
             return res.status(500).json({ error: "Error fetching movements" });
         }
     }
@@ -144,7 +144,7 @@ export class MovementController {
     static getMovementById = async (req: Request, res: Response) => {
         const { id } = req.params
         try {
-            const movement = await Movement.findById(id)
+            const movement = await Movement.findById(id).populate('Account')
             if(!movement){
                 const error = new Error("Movement not found")
                 return res.status(404).json({ error: error.message })
@@ -248,16 +248,4 @@ export class MovementController {
         }
     }
 
-
-    //FIXME:
-    static createAccount = async (req: Request, res: Response) =>{
-        const account = new Account(req.body)
-        try {
-            await account.save()
-            res.send('account created successfully')
-        } catch (error) {
-            console.log(error)
-            return res.status(500).json({error: 'Error creating account'})
-        }
-    }
 }

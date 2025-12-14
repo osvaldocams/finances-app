@@ -66,8 +66,4 @@ router.delete('/:id',
     MovementController.deleteMovement
 )
 
-//Account routes
-//FIXME:
-router.post('/accounts', MovementController.createAccount)
-
 export default router
