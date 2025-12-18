@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import { connectDB } from './config/db'
 import movementRoutes from './routes/movementRoutes'
 import AccountRoutes from './routes/AccountRoutes'
+import tagRoutes from './routes/tagRoutes'
 
 dotenv.config()
 
@@ -15,5 +16,6 @@ app.use(express.json())
 //routes
 app.use('/api/movements', movementRoutes)
 app.use('/api/accounts', AccountRoutes)
+app.use('/api/tag', tagRoutes)
 
 export default app
