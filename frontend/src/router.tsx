@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import AppLayout from "./layouts/AppLayout"
 import DashboardView from "./views/DashboardView"
-import CreateMovementView from "./views/moneyFlux/CreateMovementView"
-import MovementView from "./views/moneyFlux/MovementView"
+import CreateMovementView from "./views/movements/CreateMovementView"
+import MovementView from "./views/movements/MovementView"
 
 
 export default function Router() {
