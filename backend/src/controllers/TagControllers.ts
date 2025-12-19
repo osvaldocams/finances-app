@@ -11,7 +11,7 @@ type UpdateTagBody = {
 export class TagController {
 
     static createTag = async (req: Request<{},{},ITag>, res: Response) => {
-        
+
         try {
             const { name, color } = req.body
             const tag = new Tag({name, color})
@@ -43,7 +43,7 @@ export class TagController {
             const tag = await Tag.findById(id)
             if(!tag){
                 const error = new Error('tag not found')
-                return res.status(500).json({error: error.message})
+                return res.status(404).json({error: error.message})
             }
             res.json(tag)
         } catch (error) {

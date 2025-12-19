@@ -66,4 +66,20 @@ router.delete('/:id',
     MovementController.deleteMovement
 )
 
+//post add tag by movementId
+router.post('/:movementId/tags/:tagId',
+    param('movementId').isMongoId().withMessage('invalid movement id'),
+    param('tagId').isMongoId().withMessage('invalid tag id'),
+    handleInputErrors,
+    MovementController.addTagToMovement
+)
+
+//delete remove tag from movement
+router.delete('/:movementId/tags/:tagId',
+    param('movementId').isMongoId().withMessage('invalid movement id'),
+    param('tagId').isMongoId().withMessage('invalid tag id'),
+    handleInputErrors,
+    MovementController.removeTagFromMovement
+)
+
 export default router
