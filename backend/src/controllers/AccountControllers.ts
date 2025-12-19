@@ -1,18 +1,18 @@
 import { Request, Response } from "express";
-import Account from "../models/Account"
+import Account, { IAccount } from "../models/Account"
 
 
 
 
 export class AccountController {
 
-    static createAccount = async (req: Request, res: Response) =>{
+    static createAccount = async (req: Request<{},{},IAccount>, res: Response) =>{
         try {
             const { name } = req.body
             // duplicate account validation
             const existing = await Account.findOne({name})
             if(existing){
-                return res.status(400).json({error: `Account '${name}' already exist`})
+                return res.status(409).json({error: `Account '${name}' already exist`})
             }
             //acount creation
             const account = new Account({name})
@@ -40,7 +40,7 @@ export class AccountController {
             const account = await Account.findById(id)
             if(!account){
                 const error = new Error("Account not found")
-                return res.status(500).json({ error: error.message }) 
+                return res.status(404).json({ error: error.message }) 
             }
             res.json(account)
         } catch (error) {

@@ -8,6 +8,7 @@ export interface IMovement extends Document {
     description: string
     incomeAccount?: mongoose.Types.ObjectId
     expenseAccount?: mongoose.Types.ObjectId
+    tags?: mongoose.Types.ObjectId[]
 }
 
 const MovementSchema: Schema = new Schema({
@@ -33,21 +34,19 @@ const MovementSchema: Schema = new Schema({
     },
     incomeAccount: { 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: "Account",
+        ref: 'Account',
         required: function (){return ['income', 'transfer', 'deposit'].includes(this.type)} 
     },
     expenseAccount: { 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: "Account",
+        ref: 'Account',
         required: function (){return ['expense', 'transfer'].includes(this.type)} 
     },
+    tags: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tag'
+    }]
 },{ timestamps: true });
-
-// MovementSchema.pre(/^find/, function(this:mongoose.Query<any,any>, next:any) {
-//     const query = this
-//     query.populate('incomeAccount').populate('expenseAccount')
-//     next(undefined)
-// });
 
 const Movement = mongoose.model<IMovement>('Movement', MovementSchema);
 export default Movement;
