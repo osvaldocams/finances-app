@@ -1,6 +1,57 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"
+import { useForm } from "react-hook-form"
+import MovementForm from "../../components/movements/MovementForm"
+import type { MovementFormInputs } from "../../types"
+import { movementDtoSchema, movementFormSchema } from "../../types"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect, useState } from "react"
+
 
 export default function CreateMovementView() {
+
+    const [submitAttempted, setSubmitAttempted] = useState(false)
+
+    const defaultValues:MovementFormInputs = {
+        type: '',
+        date: new Date().toISOString().split('T')[0],
+        amount: undefined,
+        description: '',
+        incomeAccount: undefined,
+        expenseAccount: undefined,
+        tags: []
+    }
+
+    const {register, handleSubmit, watch, setValue, formState:{errors}} = useForm<MovementFormInputs>({
+        resolver: zodResolver(movementFormSchema),
+        defaultValues})
+
+    const movementType = watch('type')
+
+    // Reset accounts when movement type changes
+    useEffect(() => {
+        if (movementType === 'income') {
+            setValue('expenseAccount', undefined)
+        } else if (movementType === 'expense') {
+            setValue('incomeAccount', undefined)
+        }
+    }, [movementType, setValue])
+
+    const handleForm = (rawData:MovementFormInputs) =>{
+        const parsed = movementDtoSchema.parse(rawData)
+        console.log(parsed)
+    }
+
+    const onSubmit = (data: MovementFormInputs) => {
+        setSubmitAttempted(true)
+        handleForm(data)
+    }
+
+    const onError = () => {
+        setSubmitAttempted(true)
+    }
+
+    const hasErrors = Object.keys(errors).length > 0
+
     return (
         <>
             <h1 className="text-5xl font-black">Crear Movimiento</h1>
@@ -16,113 +67,38 @@ export default function CreateMovementView() {
             
             <div className="flex-1 p-8">
                 <div className="bg-white p-6 rounded-lg shadow-xl border border-gray-200 max-w-2xl mx-auto">
-                    <form className="space-y-5">
-                        <div className="flex flex-col gap-3">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Tipo de Movimiento
-                            </label>
-                            <select
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
-                            >
-                                <option>--- Seleccionar ---</option>
-                                <option value="ingreso">Ingreso</option>
-                                <option value="gasto">Gasto</option>
-                                <option value="deposito">Depósito</option>
-                                <option value="transferencia">Transferencia</option>
-                            </select>
-                            <label className="block text-sm font-medium text-gray-700 my-1 ">
-                            TAG
-                            </label>
-                            <select
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
-                            >
-                                <option>--- Seleccionar ---</option>
-                                <option value="ingreso">Trabajo</option>
-                                <option value="gasto">Gasto de trabajo</option>
-                                <option value="deposito">Gasto osvaldo</option>
-                                <option value="transferencia">Propinas</option>
-                            </select>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label
-                                
-                                className="block text-sm font-medium text-gray-700 mb-1"
-                                >
-                                Fecha
-                                </label>
-                                <input
-                                type="date"
-                                value="2025-11-13"
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
-                                />
-                            </div>
-                            <div>
-                                <label
-                                className="block text-sm font-medium text-gray-700 mb-1"
-                                >
-                                Monto ($)
-                                </label>
-                                <input
-                                type="number"
-                                placeholder="Ej: 50.00"
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
-                                />
+                    {submitAttempted && hasErrors && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="flex items-start gap-3">
+                                <div>
+                                    <h3 className="text-sm font-semibold text-red-800">
+                                        Hay errores en el formulario
+                                    </h3>
+                                    <p className="text-sm text-red-700 mt-1">
+                                        Por favor corrige los campos marcados en rojo antes de continuar.
+                                    </p>
+                                </div>
                             </div>
                         </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label
-                                className="block text-sm font-medium text-gray-700 mb-1"
-                                >
-                                Cuenta Ingreso
-                                </label>
-                                <select
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
-                                >
-                                    <option value="">-- Seleccionar --</option>
-                                    <option value="principal">Cuenta Principal</option>
-                                    <option value="ahorro">Cuenta de Ahorro</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label
-                                className="block text-sm font-medium text-gray-700 mb-1"
-                                >
-                                Cuenta Egreso
-                                </label>
-                                <select
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
-                                >
-                                    <option value="">-- Seleccionar --</option>
-                                    <option value="principal">Cuenta Principal</option>
-                                    <option value="inversiones">Inversiones</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label
-                            className="block text-sm font-medium text-gray-700 mb-1"
-                            >
-                            Descripción
-                            </label>
-                            <textarea
-                            placeholder="Detalles del movimiento (Ej: Pago de renta, Venta freelance)."
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
-                            ></textarea>
-                        </div>
+                    )}
+                    <form 
+                        className="space-y-5"
+                        onSubmit={handleSubmit(onSubmit, onError)}
+                        noValidate
+                    >
+                        <MovementForm
+                            register={register}
+                            errors={errors}
+                            movementType={movementType}
+                        />
 
                         <div className="pt-4">
-                            <button
+                            <input
                             type="submit"
-                            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            >
-                            Registrar Movimiento
-                            </button>
+                            className={`w-full py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${!movementType ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' : ''}`}
+                            value='Crear Movimiento'
+                            disabled={!movementType}
+                            />
                         </div>
                     </form>
                 </div>
