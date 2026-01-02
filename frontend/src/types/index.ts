@@ -102,3 +102,4 @@ export const movementDtoSchema = movementFormSchema.transform((data)=>(
 
 export type MovementFormInputs = z.input<typeof movementFormSchema>
 export type MovementFormData = z.output<typeof movementFormSchema>
+export type MovementDtoData = z.infer<typeof movementDtoSchema>

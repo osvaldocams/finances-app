@@ -1,13 +1,10 @@
 import express from 'express'
-import dotenv from 'dotenv'
 import { connectDB } from './config/db'
 import movementRoutes from './routes/movementRoutes'
 import AccountRoutes from './routes/AccountRoutes'
 import tagRoutes from './routes/tagRoutes'
 import cors from 'cors'
 import { corsConfig } from './config/cors'
-
-dotenv.config()
 
 connectDB()
 

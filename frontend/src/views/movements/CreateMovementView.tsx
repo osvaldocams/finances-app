@@ -1,15 +1,19 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import MovementForm from "../../components/movements/MovementForm"
 import type { MovementFormInputs } from "../../types"
 import { movementDtoSchema, movementFormSchema } from "../../types"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect, useState } from "react"
+import { createMovement } from "../../api/MovementApi"
+import { useMutation } from "@tanstack/react-query"
 
 
 export default function CreateMovementView() {
 
     const [submitAttempted, setSubmitAttempted] = useState(false)
+
+    const navigate = useNavigate()
 
     const defaultValues:MovementFormInputs = {
         type: '',
@@ -27,6 +31,16 @@ export default function CreateMovementView() {
 
     const movementType = watch('type')
 
+    const { mutate } = useMutation({
+        mutationFn: createMovement,
+        onError: (error)=>{
+            console.log(error.message)
+        },
+        onSuccess: () => {
+            navigate('/movements')
+        }
+    })
+
     // Reset accounts when movement type changes
     useEffect(() => {
         if (movementType === 'income') {
@@ -36,14 +50,16 @@ export default function CreateMovementView() {
         }
     }, [movementType, setValue])
 
-    const handleForm = (rawData:MovementFormInputs) =>{
-        const parsed = movementDtoSchema.parse(rawData)
-        console.log(parsed)
-    }
+    const handleForm = (rawData:MovementFormInputs) => mutate(movementDtoSchema.parse(rawData))
+    // const handleForm = async (rawData:MovementFormInputs) =>{
+    //     const parsed = movementDtoSchema.parse(rawData)
+    //     await createMovement(parsed)
+    //     navigate('/movements')
+    // }
 
-    const onSubmit = (data: MovementFormInputs) => {
+    const onSubmit = async (data: MovementFormInputs) => {
         setSubmitAttempted(true)
-        handleForm(data)
+        await handleForm(data)
     }
 
     const onError = () => {
