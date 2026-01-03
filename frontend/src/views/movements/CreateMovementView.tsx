@@ -1,12 +1,13 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import MovementForm from "../../components/movements/MovementForm"
-import type { MovementFormInputs } from "../../types"
+import type { Account, MovementFormInputs } from "../../types"
 import { movementDtoSchema, movementFormSchema } from "../../types"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect, useState } from "react"
 import { createMovement } from "../../api/MovementApi"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
+import { getAllAccounts } from "../../api/AccountApi"
 
 
 export default function CreateMovementView() {
@@ -31,6 +32,11 @@ export default function CreateMovementView() {
 
     const movementType = watch('type')
 
+    const { data:Account = [], isLoading} = useQuery<Account[]>({
+        queryKey: ['accounts'],
+        queryFn: getAllAccounts
+    })    
+    
     const { mutate } = useMutation({
         mutationFn: createMovement,
         onError: (error)=>{
@@ -106,6 +112,8 @@ export default function CreateMovementView() {
                             register={register}
                             errors={errors}
                             movementType={movementType}
+                            accounts={Account}
+                            isLoadingAccounts={isLoading}
                         />
 
                         <div className="pt-4">

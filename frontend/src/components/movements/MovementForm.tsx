@@ -1,5 +1,5 @@
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
-import type { MovementFormInputs } from "../../types";
+import type { Account, MovementFormInputs } from "../../types";
 import { MOVEMENT_TYPES } from "../../constants/movementTypes";
 import ErrorMessage from "../ErrorMessage";
 
@@ -8,10 +8,12 @@ type MovementFormProps = {
     register: UseFormRegister<MovementFormInputs>
     errors: FieldErrors<MovementFormInputs>
     movementType?: string
+    accounts:Account[]
+    isLoadingAccounts:boolean
 }
 
 
-export default function MovementForm({register, errors, movementType}:MovementFormProps) {
+export default function MovementForm({register, errors, movementType, accounts, isLoadingAccounts}:MovementFormProps) {
     return (
         <>
             <div className="flex flex-col gap-3">
@@ -96,13 +98,18 @@ export default function MovementForm({register, errors, movementType}:MovementFo
                     Cuenta Ingreso
                     </label>
                     <select
-                        disabled={!movementType || movementType === 'expense'}
+                        disabled={isLoadingAccounts || !movementType || movementType === 'expense'}
                         className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ${!movementType || movementType === 'expense' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                         {...register('incomeAccount')}
                     >
-                        <option value="">-- Seleccionar --</option>
-                        <option value="principal">Cuenta Principal</option>
-                        <option value="ahorro">Cuenta de Ahorro</option>
+                        <option value="">
+                            {isLoadingAccounts ? 'Cargando cuentas...': '-- Seleccionar --'}
+                        </option>
+                        {accounts.map((account)=>(
+                            <option key={account._id} value={account.name}>
+                                {account.name}
+                            </option>
+                        ))}
                     </select>
                     {errors.incomeAccount && (
                         <ErrorMessage message={errors.incomeAccount.message} />
@@ -116,13 +123,18 @@ export default function MovementForm({register, errors, movementType}:MovementFo
                     Cuenta Egreso
                     </label>
                     <select
-                        disabled={!movementType || movementType === 'income'}
+                        disabled={isLoadingAccounts || !movementType || movementType === 'income'}
                         className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ${!movementType || movementType === 'income' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                         {...register('expenseAccount')}
                     >
-                        <option value="">-- Seleccionar --</option>
-                        <option value="principal">Cuenta Principal</option>
-                        <option value="inversiones">Inversiones</option>
+                        <option value="">
+                            {isLoadingAccounts ? 'Cargando cuentas...': '-- Seleccionar --'}
+                        </option>
+                        {accounts.map((account)=>(
+                            <option key={account._id} value={account.name}>
+                                {account.name}
+                            </option>
+                        ))}
                     </select>
                     {errors.expenseAccount && (
                         <ErrorMessage message={errors.expenseAccount.message} />
