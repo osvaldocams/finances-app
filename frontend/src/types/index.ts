@@ -1,6 +1,17 @@
 import {z} from 'zod'
 import {MOVEMENT_TYPES} from '../constants/movementTypes'
 
+/*Accounts*/
+export const accountSchema = z.object({
+    _id: z.string(),
+    name: z.string(),
+    balance: z.number()
+})
+export const accountListSchema = z.array(accountSchema)
+
+export type Account = z.infer<typeof accountSchema>
+export type AccountList = z.infer<typeof accountListSchema>
+
 /*Movements*/
 export const movementSchema = z.object({
     _id: z.string(),
@@ -102,3 +113,4 @@ export const movementDtoSchema = movementFormSchema.transform((data)=>(
 
 export type MovementFormInputs = z.input<typeof movementFormSchema>
 export type MovementFormData = z.output<typeof movementFormSchema>
+export type MovementDtoData = z.infer<typeof movementDtoSchema>

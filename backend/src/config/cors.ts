@@ -1,8 +1,9 @@
 import { CorsOptions } from "cors"
 
 const whitelist = [
-    process.env.FRONTEND_URL
-].filter(Boolean)
+    process.env.FRONTEND_URL,
+    //'http://localhost:5173'
+].filter(Boolean) as string[]
 
 export const corsConfig: CorsOptions = {
     origin:(origin, callback) => {
@@ -12,8 +13,8 @@ export const corsConfig: CorsOptions = {
         if(whitelist.includes(origin)) {
             return callback(null, true)
         }
-        callback(new Error(`CORS blocked origin: ${origin}`))
+        return callback(new Error(`CORS blocked origin: ${origin}`))
     },
-    credentials: true,
+    //credentials: true,
     optionsSuccessStatus: 200
 }
