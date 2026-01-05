@@ -3,15 +3,20 @@
 export const movementTypesList = ['income', 'expense', 'deposit', 'transfer'] as const
 export type MovementType = typeof movementTypesList[number]
 
+export const accountKinds = ['cash', 'bank'] as const
+export type AccountKind = typeof accountKinds[number]
 
-export const accountTypesList = ['CASH', 'BBVA', 'AZTECA', 'MERCADOPAGO'] as const
-export type AccountType = typeof accountTypesList[number]
 
 export type MovementBody = {
     type: MovementType
     date: Date
     amount: number
     description: string
-    incomeAccount: AccountType
-    expenseAccount: AccountType
+    incomeAccountId: string
+    expenseAccountId: string
+}
+
+export type CreateAccountBody = {
+    name: string
+    kind: AccountKind
 }

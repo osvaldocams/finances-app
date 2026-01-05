@@ -1,25 +1,31 @@
 import mongoose, {Schema, Document} from "mongoose"
-import { AccountType, accountTypesList } from "../types";
+import { accountKinds } from "../types"
 
 
 export interface IAccount extends Document {
-    name: AccountType
+    name: string
+    kind: 'cash'|'bank'
     balance: number
 }
 
 const AccountSchema: Schema = new Schema({
     name: {
         type: String,
-        enum: accountTypesList,
         required: true,
-        unique: true,
         trim: true
+    },
+    kind: {
+        type: String,
+        enum: accountKinds,
+        required: true
     },
     balance: {
         type: Number,
         default: 0,
         required: true
-    }
-})
+    },
+},{timestamps: true})
+
+
 const Account = mongoose.model<IAccount>('Account', AccountSchema);
 export default Account;

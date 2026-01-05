@@ -12,113 +12,72 @@ export class MovementController {
         try {
             session.startTransaction()
             
-            const {type, amount, incomeAccount:incomeName, expenseAccount:expenseName, description} = req.body
+            const {type, amount, incomeAccountId, expenseAccountId, description} = req.body
 
             const absAmount = Math.abs(amount) //normalize amount
 
             //----------
-            //1)mapping strings- real objectId
-            //----------
-            let incomeAccountDoc: IAccount | null = null
-            let expenseAccountDoc: IAccount | null = null
-
-            const incomeNameNormalized = incomeName?.trim().toUpperCase()
-            const expenseNameNormalized = expenseName?.trim().toUpperCase()
-
-            if(incomeNameNormalized || expenseNameNormalized){
-                const [inc, exp] = await Promise.all([
-                    incomeNameNormalized ? Account.findOne({name:incomeNameNormalized},{},{session}) : null,
-                    expenseNameNormalized ? Account.findOne({name:expenseNameNormalized},{},{session}) : null
-                ])
-                incomeAccountDoc = inc
-                expenseAccountDoc = exp
-                
-                if(incomeNameNormalized && !incomeAccountDoc){
-                    const error = new Error(`income account '${incomeName}' not found`)
-                    return res.status(404).json({error: error.message})
-                }
-                if(expenseNameNormalized && !expenseAccountDoc){
-                    const error = new Error(`expense account '${expenseName}' not found`)
-                    return res.status(404).json({error: error.message})
-                }
-            }
-            //----------
-            //2)type validation
-            //----------
-            if(['income', 'transfer', 'deposit'].includes(type) && !incomeAccountDoc){
-                const error = new Error('incomeAccount required for this movement type')
-                return res.status(400).json({error: error.message})
-            }
-            if(['expense', 'transfer'].includes(type) && !expenseAccountDoc){
-                const error = new Error('expenseAccount required for this movement type')
-                return res.status(400).json({error: error.message})
-            }
-
-            //----------
-            //3)create movement with objectId
+            //1)create movement
             //----------
             const movement = new Movement({
                 type,
                 amount,
                 description,
-                incomeAccount: incomeAccountDoc?._id,
-                expenseAccount: expenseAccountDoc?._id
+                incomeAccount: incomeAccountId,
+                expenseAccount: expenseAccountId
             })
             await movement.save({session})
             //----------
-            //4)update accounts balance
+            //2)update balances
             //----------
             switch(type){
                 case 'income':
                     await Account.updateOne(
-                        {_id: incomeAccountDoc!._id},
+                        {_id: incomeAccountId},
                         {$inc: {balance: absAmount}},
                         {session}
                     )
                     break
                 case 'expense':
                     await Account.updateOne(
-                        {_id:expenseAccountDoc!._id},
+                        {_id:expenseAccountId},
                         {$inc:{balance: -absAmount}},
                         {session}
                     )
                     break
                 case 'transfer':
                     await Account.updateOne(
-                        { _id: expenseAccountDoc!._id },
+                        { _id: expenseAccountId },
                         { $inc: { balance: -absAmount } },
                         {session}
                     )
                     await Account.updateOne(
-                        {_id: incomeAccountDoc!._id},
+                        {_id: incomeAccountId},
                         {$inc: {balance: absAmount}},
                         {session}
                     )
                     break
                 case 'deposit':
                     const cash = await Account.findOne(
-                        {name: 'CASH'},
+                        {kind: 'cash'},
                         {},
                         {session}
                     )
-                    if(!cash)throw new Error('CASH account not found')
-                    if(!incomeAccountDoc)throw new Error('income account required for deposit')
-                    if(incomeAccountDoc._id.equals(cash._id))throw new Error('income account cannot be CASH for deposit')
-                    
+                    if(!cash)throw new Error('cash account not found')
                     await Account.updateOne(
                         {_id:cash._id},
                         {$inc:{balance:-absAmount}},
                         {session}
                     )
                     await Account.updateOne(
-                        {_id:incomeAccountDoc._id},
+                        {_id:incomeAccountId},
                         {$inc:{balance:absAmount}},
                         {session}
                     )
                     break
             }
             //----------
-            //5)commit
+            //3)commit
             //----------
             await session.commitTransaction()
             return res.status(201).json({
@@ -137,7 +96,7 @@ export class MovementController {
 
     static getAllMovements = async (req: Request, res: Response) => {
         try {
-            const movements = await Movement.find({}).populate('incomeAccount expenseAccount tags').lean()
+            const movements = await Movement.find({}).populate(['incomeAccount', 'expenseAccount', 'tags']).lean()
             res.json(movements)
             
         } catch (error) {
@@ -149,7 +108,7 @@ export class MovementController {
     static getMovementById = async (req: Request, res: Response) => {
         const { id } = req.params
         try {
-            const movement = await Movement.findById(id).populate('incomeAccount expenseAccount tags').lean()
+            const movement = await Movement.findById(id).populate(['incomeAccount', 'expenseAccount', 'tags']).lean()
             if(!movement){
                 const error = new Error("Movement not found")
                 return res.status(404).json({ error: error.message })
@@ -164,9 +123,9 @@ export class MovementController {
     static deleteMovement = async (req: Request<{id:string}>, res: Response) =>{
         //0)stars session+transaction
         const session = await mongoose.startSession()
-        session.startTransaction()
         try {
             //1)verify movement exist
+            session.startTransaction()
             const { id } = req.params
             const movement = await Movement.findById(id).session(session)
             if(!movement){
@@ -175,17 +134,14 @@ export class MovementController {
             }
 
             //2)prepare reverse operation
-            const { type, amount} = movement
-            const incAcc = movement.incomeAccount
-            const expAcc = movement.expenseAccount
-
+            const { type, amount, incomeAccount, expenseAccount } = movement
             const absAmount = Math.abs(amount)
-            //safety validations
-            if(['income', 'transfer', 'deposit'].includes(type) && !incAcc){
+            //defensive checks data integrity
+            if(['income', 'transfer', 'deposit'].includes(type) && !incomeAccount){
                 const error = new Error('income account missing in movement')
                 return res.status(400).json({ error: error.message })
             }
-            if(['expense', 'transfer'].includes(type) && !expAcc){
+            if(['expense', 'transfer'].includes(type) && !expenseAccount){
                 const error = new Error('expense account missing in movement')
                 return res.status(400).json({ error: error.message })
             }
@@ -194,44 +150,44 @@ export class MovementController {
             switch(type){
                 case 'income':
                     await Account.updateOne(
-                        {_id: incAcc},
+                        {_id: incomeAccount},
                         {$inc: {balance: -absAmount}},
                         {session}
                     )
                     break
                 case 'expense':
                     await Account.updateOne(
-                        {_id:expAcc},
+                        {_id:expenseAccount},
                         {$inc:{balance: absAmount}},
                         {session}
                     )
                     break
                 case 'transfer':
                     await Account.updateOne(
-                        { _id: expAcc },
+                        { _id: expenseAccount },
                         { $inc: { balance: absAmount } },
                         {session}
                     )
                     await Account.updateOne(
-                        {_id: incAcc},
+                        {_id: incomeAccount},
                         {$inc: {balance: -absAmount}},
                         {session}
                     )
                     break
                 case 'deposit':
                     const cash = await Account.findOne(
-                        {name: 'CASH'},
+                        {kind: 'cash'},
                         {},
                         {session}
                     )
-                    if(!cash)throw new Error('CASH account not found')
+                    if(!cash)throw new Error('cash account not found')
                     await Account.updateOne(
                         {_id:cash._id},
                         {$inc:{balance:absAmount}},
                         {session}
                     )
                     await Account.updateOne(
-                        {_id:incAcc},
+                        {_id:incomeAccount},
                         {$inc:{balance:-absAmount}},
                         {session}
                     )
