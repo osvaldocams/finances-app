@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express"
 import { validationResult } from "express-validator"
-import { accountTypesList, MovementBody } from "../types"
+import {  MovementBody } from "../types"
+import Account from "../models/Account"
 
 
 export const handleInputErrors = (req: Request, res: Response, next: NextFunction) => {
@@ -11,28 +12,40 @@ export const handleInputErrors = (req: Request, res: Response, next: NextFunctio
     next()
 }
 
-export const validateMovementLogic = (req: Request<{},{},MovementBody>, res: Response, next: NextFunction) => {
-    const {type, incomeAccount, expenseAccount} = req.body
-    const cash = accountTypesList.find(a => a === 'CASH') 
+export const validateMovementLogic = async(req: Request<{},{},MovementBody>, res: Response, next: NextFunction) => {
+    const {type, incomeAccountId, expenseAccountId} = req.body
 
     const error = (message: string) => res.status(400).json({ errors: [{ msg: message }] })
+    
     // ========== TYPE RULES ==========
     if(type === 'income'){
-        if (!incomeAccount) return error("incomeAccount is required for income type")
-        if (expenseAccount) return error("expenseAccount is not allowed for income type")
+        if (!incomeAccountId) return error("incomeAccountId is required for income type")
+        if (expenseAccountId) return error("expenseAccountId is not allowed for income type")
     }
     if(type === 'expense'){
-        if(!expenseAccount) return error("expenseAccount ir required for expense type")
-        if(incomeAccount) return error("incomeAccount ir required for expense type")
+        if(!expenseAccountId) return error("expenseAccountId is required for expense type")
+        if(incomeAccountId) return error("incomeAccountId is required for expense type")
     }
-    if(type === 'transfer'){
-        if(!incomeAccount || !expenseAccount)return error("Both incomeAccount and expenseAccount are required for transfer type")
-        if (incomeAccount === expenseAccount)return error("incomeAccount and expenseAccount cannot be the same for transfer type")
+    if(type === 'transfer' || type === 'deposit'){
+        if(!incomeAccountId || !expenseAccountId)return error("Both incomeAccountId and expenseAccountId are required for transfer type")
+        if (incomeAccountId === expenseAccountId)return error("incomeAccountId and expenseAccountId cannot be the same for transfer type")
     }
+    // Load accounts
+    const [incomeAccount, expenseAccount] = await Promise.all([
+        incomeAccountId ? Account.findById(incomeAccountId) : null,
+        expenseAccountId ? Account.findById(expenseAccountId) : null
+    ])
+    if(incomeAccountId && !incomeAccount){
+        return error("incomeAccountId does not correspond to a valid account")
+    }
+    if(expenseAccountId && !expenseAccount){
+        return error("expenseAccountId does not correspond to a valid account")
+    }
+    //type specific business rules
     if(type === 'deposit'){
-        if (!incomeAccount || !expenseAccount)return error("Both incomeAccount and expenseAccount are required for deposit type")
-        if (expenseAccount !== cash)return error("For deposit type, expenseAccount must be CASH")
-        if (incomeAccount === expenseAccount)return error("incomeAccount and expenseAccount cannot be the same for deposit type")
+        if(expenseAccount!.kind !== 'cash'){
+            return error("For deposit type, expenseAccount must be of kind 'cash'")
+        }
     }
     next()
 }

@@ -2,7 +2,7 @@ import { Router } from "express"
 import { MovementController } from "../controllers/MovementControllers"
 import { body, param } from "express-validator"
 import { handleInputErrors, normalizeAmount, validateMovementLogic } from "../middleware/validation"
-import {movementTypesList, accountTypesList} from "../types"
+import {movementTypesList} from "../types"
 
 const router = Router()
 
@@ -31,14 +31,14 @@ router.post('/',
         .isISO8601()
         .withMessage('Invalid date format')
         .toDate(),
-    body('incomeAccount')
+    body('incomeAccountId')
         .optional()
-        .isIn(accountTypesList)
-        .withMessage(`income account must be one of: ${accountTypesList.join(', ')}`),
-    body('expenseAccount')
+        .isMongoId()
+        .withMessage('income account must be a valid account id'),
+    body('expenseAccountId')
         .optional()
-        .isIn(accountTypesList)
-        .withMessage(`expense account must be one of: ${accountTypesList.join(', ')}`),
+        .isMongoId()
+        .withMessage('expense account must be a valid account id'),
     handleInputErrors,
     validateMovementLogic,
     normalizeAmount,

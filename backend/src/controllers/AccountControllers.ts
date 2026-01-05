@@ -1,21 +1,22 @@
 import { Request, Response } from "express";
-import Account, { IAccount } from "../models/Account"
+import Account from "../models/Account"
+import { CreateAccountBody } from "../types";
 
 
 
 
 export class AccountController {
 
-    static createAccount = async (req: Request<{},{},IAccount>, res: Response) =>{
+    static createAccount = async (req: Request<{},{},CreateAccountBody>, res: Response) =>{
         try {
-            const { name } = req.body
+            const { name, kind } = req.body
             // duplicate account validation
             const existing = await Account.findOne({name})
             if(existing){
                 return res.status(409).json({error: `Account '${name}' already exist`})
             }
             //acount creation
-            const account = new Account({name})
+            const account = new Account({name, kind})
             await account.save()
             res.send('account created successfully')
         } catch (error) {
@@ -37,7 +38,7 @@ export class AccountController {
     static getAccountById = async (req: Request, res: Response) => {
         const { id } = req.params
         try {
-            const account = await Account.findById(id)
+            const account = await Account.findById(id).lean()
             if(!account){
                 const error = new Error("Account not found")
                 return res.status(404).json({ error: error.message }) 
