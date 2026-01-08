@@ -5,6 +5,7 @@ import {MOVEMENT_TYPES} from '../constants/movementTypes'
 export const accountSchema = z.object({
     _id: z.string(),
     name: z.string(),
+    kind: z.string(),
     balance: z.number()
 })
 export const accountListSchema = z.array(accountSchema)
@@ -21,8 +22,8 @@ export const movementSchema = z.object({
     date: z.string(),//ISO string
     amount: z.number().positive(),
     description: z.string().optional(),
-    incomeAccount: z.string().optional(),
-    expenseAccount: z.string().optional(),
+    incomeAccountId: z.string().optional(),
+    expenseAccountId: z.string().optional(),
     tags: z.array(z.string())
 })
 
@@ -36,8 +37,8 @@ const movementFormInputSchema = z.object({
     date: z.string(),
     amount: z.union([z.string(), z.number()]).optional(),
     description: z.string().optional(),
-    incomeAccount: z.string().optional(),
-    expenseAccount: z.string().optional(),
+    incomeAccountId: z.string().optional(),
+    expenseAccountId: z.string().optional(),
     tags: z.array(z.string()).optional()
 })
 
@@ -51,8 +52,8 @@ export const movementFormSchema = movementFormInputSchema
                 ? Number(data.amount)
                 : data.amount,
         description: data.description ?? undefined,
-        incomeAccount: data.incomeAccount === '' ? undefined : data.incomeAccount ?? undefined,
-        expenseAccount: data.expenseAccount === '' ? undefined : data.expenseAccount ?? undefined,
+        incomeAccountId: data.incomeAccountId === '' ? undefined : data.incomeAccountId ?? undefined,
+        expenseAccountId: data.expenseAccountId === '' ? undefined : data.expenseAccountId ?? undefined,
         tags: data.tags ?? []
     }))
     .pipe(
@@ -66,37 +67,56 @@ export const movementFormSchema = movementFormInputSchema
             date: z.string(),
             amount: z.number().positive({message: 'El monto debe ser mayor a cero'}).or(z.undefined()),
             description: z.string().or(z.undefined()),
-            incomeAccount: z.string().or(z.undefined()),
-            expenseAccount: z.string().or(z.undefined()),
+            incomeAccountId: z.string().or(z.undefined()),
+            expenseAccountId: z.string().or(z.undefined()),
             tags: z.array(z.string())
         }).superRefine((data, ctx) => {
-            if(data.type === 'income' && !data.incomeAccount){
+            if(data.amount === undefined){
                 ctx.addIssue({
-                    path: ['incomeAccount'],
+                    path: ['amount'],
+                    message: 'El monto es obligatorio',
+                    code: z.ZodIssueCode.custom
+                })
+            }
+            if(data.type === 'income' && !data.incomeAccountId){
+                ctx.addIssue({
+                    path: ['incomeAccountId'],
                     message: 'la cuenta de ingresos es obligatoria',
                     code: z.ZodIssueCode.custom
                 })
             }
-            if(data.type === 'expense' && !data.expenseAccount){
+            if(data.type === 'expense' && !data.expenseAccountId){
                 ctx.addIssue({
-                    path: ['expenseAccount'],
+                    path: ['expenseAccountId'],
                     message: 'la cuenta de egresos es obligatoria',
                     code: z.ZodIssueCode.custom
                 })
             }
             if(['transfer', 'deposit'].includes(data.type)){
-                if (!data.incomeAccount || !data.expenseAccount){
+                if (!data.incomeAccountId ){
                     ctx.addIssue({
-                        path: ['incomeAccount'],
-                        message: 'Se requieren ambas cuentas',
+                        path: ['incomeAccountId'],
+                        message: 'La cuenta de ingresos es obligatoria',
+                        code: z.ZodIssueCode.custom,
+                    })
+                }
+                if(!data.expenseAccountId){
+                    ctx.addIssue({
+                        path: ['expenseAccountId'],
+                        message: 'La cuenta de egresos es obligatoria',
                         code: z.ZodIssueCode.custom,
                     })
                 }
             }
-            if(data.amount === undefined){
+            if(
+                data.type === 'transfer' && 
+                data.incomeAccountId && 
+                data.expenseAccountId && 
+                data.incomeAccountId === data.expenseAccountId
+            ){
                 ctx.addIssue({
-                    path: ['amount'],
-                    message: 'El monto es obligatorio',
+                    path:['expenseAccountId'],
+                    message: 'La cuenta origen y destino no pueden ser la misma',
                     code: z.ZodIssueCode.custom
                 })
             }

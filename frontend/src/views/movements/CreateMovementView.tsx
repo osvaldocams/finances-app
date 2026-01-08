@@ -21,8 +21,8 @@ export default function CreateMovementView() {
         date: new Date().toISOString().split('T')[0],
         amount: undefined,
         description: '',
-        incomeAccount: undefined,
-        expenseAccount: undefined,
+        incomeAccountId: undefined,
+        expenseAccountId: undefined,
         tags: []
     }
 
@@ -31,6 +31,8 @@ export default function CreateMovementView() {
         defaultValues})
 
     const movementType = watch('type')
+    const incomeAccountId = watch('incomeAccountId')
+    const expenseAccountId = watch('expenseAccountId')
 
     const { data:Account = [], isLoading} = useQuery<Account[]>({
         queryKey: ['accounts'],
@@ -50,9 +52,9 @@ export default function CreateMovementView() {
     // Reset accounts when movement type changes
     useEffect(() => {
         if (movementType === 'income') {
-            setValue('expenseAccount', undefined)
+            setValue('expenseAccountId', undefined)
         } else if (movementType === 'expense') {
-            setValue('incomeAccount', undefined)
+            setValue('incomeAccountId', undefined)
         }
     }, [movementType, setValue])
 
@@ -113,6 +115,8 @@ export default function CreateMovementView() {
                             errors={errors}
                             movementType={movementType}
                             accounts={Account}
+                            selectedExpenseAccountId={expenseAccountId}
+                            selectedIncomeAccountId={incomeAccountId}
                             isLoadingAccounts={isLoading}
                         />
 
