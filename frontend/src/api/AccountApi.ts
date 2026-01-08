@@ -1,6 +1,6 @@
 import { isAxiosError } from "axios"
 import api from "../lib/axios"
-import { accountSchema } from "../types"
+import { accountListSchema } from "../types"
 
 // express validation error format
 type ValidationError = {
@@ -19,9 +19,11 @@ type ErrorResponse = {
 export async function getAllAccounts(){
     try {
         const {data} = await api('/accounts')
-        const response = accountSchema.safeParse(data)
-        if(response.success) return response.data
-        return data
+        const response = accountListSchema.safeParse(data)
+        if(!response.success){
+            throw new Error('invalid account format')
+        } 
+        return response.data
     } catch (error) {
         //debugging logs for development only
         if(import.meta.env.DEV){

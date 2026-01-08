@@ -2,6 +2,7 @@ import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import type { Account, MovementFormInputs } from "../../types";
 import { MOVEMENT_TYPES } from "../../constants/movementTypes";
 import ErrorMessage from "../ErrorMessage";
+import { useMemo } from "react";
 
 
 type MovementFormProps = {
@@ -9,11 +10,39 @@ type MovementFormProps = {
     errors: FieldErrors<MovementFormInputs>
     movementType?: string
     accounts:Account[]
+    selectedExpenseAccountId?:string
+    selectedIncomeAccountId?:string
     isLoadingAccounts:boolean
 }
 
 
-export default function MovementForm({register, errors, movementType, accounts, isLoadingAccounts}:MovementFormProps) {
+export default function MovementForm({register, errors, movementType, accounts,selectedExpenseAccountId, selectedIncomeAccountId, isLoadingAccounts}:MovementFormProps) {
+    
+    const { incomeAccounts, expenseAccounts } = useMemo(() => {
+        let incomeBase = accounts
+        let expenseBase = accounts
+
+        if(movementType === 'deposit'){
+            incomeBase = accounts.filter(account => account.kind === 'bank');
+            expenseBase = accounts.filter(account => account.kind === 'cash');
+        }
+
+        if(movementType === 'transfer'){
+            incomeBase = accounts.filter(account => account.kind === 'bank');
+            expenseBase = accounts.filter(account => account.kind === 'bank');
+            if(selectedExpenseAccountId){
+                incomeBase = incomeBase.filter(account => account._id !== selectedExpenseAccountId)
+            }
+            if(selectedIncomeAccountId){
+                expenseBase = expenseBase.filter(account => account._id !== selectedIncomeAccountId)
+            }
+        }
+        return{
+            incomeAccounts: incomeBase,
+            expenseAccounts: expenseBase
+        }
+    }, [accounts, movementType, selectedExpenseAccountId, selectedIncomeAccountId]);
+
     return (
         <>
             <div className="flex flex-col gap-3">
@@ -100,19 +129,19 @@ export default function MovementForm({register, errors, movementType, accounts, 
                     <select
                         disabled={isLoadingAccounts || !movementType || movementType === 'expense'}
                         className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ${!movementType || movementType === 'expense' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                        {...register('incomeAccount')}
+                        {...register('incomeAccountId')}
                     >
                         <option value="">
                             {isLoadingAccounts ? 'Cargando cuentas...': '-- Seleccionar --'}
                         </option>
-                        {accounts.map((account)=>(
-                            <option key={account._id} value={account.name}>
+                        {incomeAccounts.map((account)=>(
+                            <option key={account._id} value={account._id}>
                                 {account.name}
                             </option>
                         ))}
                     </select>
-                    {errors.incomeAccount && (
-                        <ErrorMessage message={errors.incomeAccount.message} />
+                    {errors.incomeAccountId && (
+                        <ErrorMessage message={errors.incomeAccountId.message} />
                     )}
                 </div>
 
@@ -125,19 +154,19 @@ export default function MovementForm({register, errors, movementType, accounts, 
                     <select
                         disabled={isLoadingAccounts || !movementType || movementType === 'income'}
                         className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ${!movementType || movementType === 'income' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                        {...register('expenseAccount')}
+                        {...register('expenseAccountId')}
                     >
                         <option value="">
                             {isLoadingAccounts ? 'Cargando cuentas...': '-- Seleccionar --'}
                         </option>
-                        {accounts.map((account)=>(
-                            <option key={account._id} value={account.name}>
+                        {expenseAccounts.map((account)=>(
+                            <option key={account._id} value={account._id}>
                                 {account.name}
                             </option>
                         ))}
                     </select>
-                    {errors.expenseAccount && (
-                        <ErrorMessage message={errors.expenseAccount.message} />
+                    {errors.expenseAccountId && (
+                        <ErrorMessage message={errors.expenseAccountId.message} />
                     )}
                 </div>
             </div>
