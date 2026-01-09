@@ -40,7 +40,7 @@ const MovementSchema: Schema = new Schema({
     expenseAccount: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Account',
-        required: function (){return ['expense', 'transfer'].includes(this.type)} 
+        required: function (){return ['expense', 'transfer', 'withdrawal'].includes(this.type)} 
     },
     tags: [{
         type: mongoose.Schema.Types.ObjectId,

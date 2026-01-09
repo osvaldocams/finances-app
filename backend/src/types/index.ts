@@ -1,6 +1,6 @@
 
 
-export const movementTypesList = ['income', 'expense', 'deposit', 'transfer'] as const
+export const movementTypesList = ['income', 'expense', 'deposit', 'withdrawal', 'transfer'] as const
 export type MovementType = typeof movementTypesList[number]
 
 export const accountKinds = ['cash', 'bank'] as const
