@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import Movement from "../models/Movement";
 import mongoose from "mongoose";
-import Account, { IAccount } from "../models/Account";
+import Account from "../models/Account";
 import { type MovementBody } from "../types";
 import Tag from "../models/Tag";
 

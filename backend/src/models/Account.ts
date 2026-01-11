@@ -1,10 +1,10 @@
 import mongoose, {Schema, Document} from "mongoose"
-import { accountKinds } from "../types"
+import { AccountKind, accountKinds } from "../types"
 
 
 export interface IAccount extends Document {
     name: string
-    kind: 'cash'|'bank'
+    kind: AccountKind
     balance: number
 }
 
