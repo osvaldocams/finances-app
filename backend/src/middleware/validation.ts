@@ -26,11 +26,11 @@ export const validateMovementLogic = async(req: Request<{},{},MovementBody>, res
         if(!expenseAccountId) return error("expenseAccountId is required for expense type")
         if(incomeAccountId) return error("incomeAccountId is not allowed for expense type")
     }
-    if(type === 'transfer' || type === 'deposit'){
+    if(['transfer', 'withdrawal', 'deposit'].includes(type)){
         if(!incomeAccountId || !expenseAccountId)return error("Both incomeAccountId and expenseAccountId are required for this movement type")
-        if (incomeAccountId === expenseAccountId)return error("incomeAccountId and expenseAccountId cannot be the same for transfer type")
+        if (incomeAccountId === expenseAccountId)return error("incomeAccountId and expenseAccountId cannot be the same")
     }
-    // Load accounts
+
     const [incomeAccount, expenseAccount] = await Promise.all([
         incomeAccountId ? Account.findById(incomeAccountId) : null,
         expenseAccountId ? Account.findById(expenseAccountId) : null
@@ -49,6 +49,15 @@ export const validateMovementLogic = async(req: Request<{},{},MovementBody>, res
         }
         if(incomeAccount!.kind === 'cash'){
             return error("For deposit type, incomeAccount cannot be of kind 'cash'")
+        }
+    }
+    if(type === 'withdrawal'){
+        //bank -> cash
+        if(expenseAccount!.kind !== 'bank'){
+            return error("For withdrawal type, expenseAccount must be of kind 'bank'")
+        }
+        if(incomeAccount!.kind === 'bank'){
+            return error("For withdrawal type, incomeAccount cannot be of kind 'bank'")
         }
     }
     if(type === 'transfer'){

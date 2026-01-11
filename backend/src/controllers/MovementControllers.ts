@@ -58,14 +58,20 @@ export class MovementController {
                     )
                     break
                 case 'deposit':
-                    const cash = await Account.findOne(
-                        {kind: 'cash'},
-                        {},
+                    await Account.updateOne(
+                        {_id:expenseAccountId},
+                        {$inc:{balance: -absAmount}}, 
                         {session}
                     )
-                    if(!cash)throw new Error('cash account not found')
                     await Account.updateOne(
-                        {_id:cash._id},
+                        {_id:incomeAccountId},
+                        {$inc:{balance:absAmount}},
+                        {session}
+                    )
+                    break
+                case 'withdrawal':
+                    await Account.updateOne(
+                        {_id:expenseAccountId},
                         {$inc:{balance:-absAmount}},
                         {session}
                     )
@@ -129,8 +135,7 @@ export class MovementController {
             const { id } = req.params
             const movement = await Movement.findById(id).session(session)
             if(!movement){
-                const error = new Error("Movement not found")
-                return res.status(404).json({ error: error.message })
+                throw new Error('movement not found')
             }
 
             //2)prepare reverse operation
@@ -141,7 +146,7 @@ export class MovementController {
                 const error = new Error('income account missing in movement')
                 return res.status(400).json({ error: error.message })
             }
-            if(['expense', 'transfer'].includes(type) && !expenseAccount){
+            if(['expense', 'transfer', 'withdrawal'].includes(type) && !expenseAccount){
                 const error = new Error('expense account missing in movement')
                 return res.status(400).json({ error: error.message })
             }
@@ -175,14 +180,20 @@ export class MovementController {
                     )
                     break
                 case 'deposit':
-                    const cash = await Account.findOne(
-                        {kind: 'cash'},
-                        {},
+                    await Account.updateOne(
+                        {_id:expenseAccount},
+                        {$inc:{balance:absAmount}},
                         {session}
                     )
-                    if(!cash)throw new Error('cash account not found')
                     await Account.updateOne(
-                        {_id:cash._id},
+                        {_id:incomeAccount},
+                        {$inc:{balance:-absAmount}},
+                        {session}
+                    )
+                    break
+                case 'withdrawal':
+                    await Account.updateOne(
+                        {_id:expenseAccount},
                         {$inc:{balance:absAmount}},
                         {session}
                     )
