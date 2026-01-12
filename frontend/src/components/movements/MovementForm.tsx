@@ -26,6 +26,10 @@ export default function MovementForm({register, errors, movementType, accounts,s
             incomeBase = accounts.filter(account => account.kind === 'bank');
             expenseBase = accounts.filter(account => account.kind === 'cash');
         }
+        if(movementType === 'withdrawal'){
+            incomeBase = accounts.filter(account => account.kind === 'cash');
+            expenseBase = accounts.filter(account => account.kind === 'bank');
+        }
 
         if(movementType === 'transfer'){
             incomeBase = accounts.filter(account => account.kind === 'bank');

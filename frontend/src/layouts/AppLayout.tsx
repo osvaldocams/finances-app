@@ -4,6 +4,8 @@ import { HiOutlineArrowsUpDown } from "react-icons/hi2"
 import { MdDeliveryDining } from "react-icons/md"
 import { FaHandHoldingHeart } from "react-icons/fa6"
 import { SiSimpleanalytics } from "react-icons/si"
+import { ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 export default function AppLayout() {
     return (
@@ -54,6 +56,10 @@ export default function AppLayout() {
                 <footer className="py-5">
                     <p className="text-center">Todos los derechos reservados {new Date().getFullYear()} </p>
                 </footer>
+                <ToastContainer 
+                    pauseOnHover={false}
+                    pauseOnFocusLoss={false}
+                />
             </div>
         </>
     )

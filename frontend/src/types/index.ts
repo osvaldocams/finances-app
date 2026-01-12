@@ -92,7 +92,7 @@ export const movementFormSchema = movementFormInputSchema
                     code: z.ZodIssueCode.custom
                 })
             }
-            if(['transfer', 'deposit'].includes(data.type)){
+            if(['transfer', 'deposit', 'withdrawal'].includes(data.type)){
                 if (!data.incomeAccountId ){
                     ctx.addIssue({
                         path: ['incomeAccountId'],

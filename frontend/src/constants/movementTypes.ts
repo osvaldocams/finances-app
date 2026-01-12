@@ -9,6 +9,9 @@ export const MOVEMENT_TYPES = {
     deposit: {
         label: 'Depósito',
     },
+    withdrawal: {
+        label: 'Retiro',
+    },
     transfer: {
         label: 'Transferencia',
     },

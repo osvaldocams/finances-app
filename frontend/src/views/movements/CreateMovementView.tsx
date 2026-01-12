@@ -8,6 +8,7 @@ import { useEffect, useState } from "react"
 import { createMovement } from "../../api/MovementApi"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { getAllAccounts } from "../../api/AccountApi"
+import {toast} from "react-toastify"
 
 
 export default function CreateMovementView() {
@@ -42,9 +43,11 @@ export default function CreateMovementView() {
     const { mutate } = useMutation({
         mutationFn: createMovement,
         onError: (error)=>{
-            console.log(error.message)
+            toast.error(error.message)
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
+            console.log(data.message)
+            toast.success(data.message)
             navigate('/movements')
         }
     })
