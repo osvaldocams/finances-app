@@ -18,7 +18,7 @@ export class AccountController {
             //acount creation
             const account = new Account({name, kind})
             await account.save()
-            res.send('account created successfully')
+            res.json(account)
         } catch (error) {
             console.log(error)
             return res.status(500).json({error: 'Error creating account'})
