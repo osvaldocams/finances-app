@@ -30,3 +30,4 @@ build/
 
 # ----
 backend/*.http
+.aider*

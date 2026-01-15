@@ -2,18 +2,22 @@ import {z} from 'zod'
 import {MOVEMENT_TYPES} from '../constants/movementTypes'
 
 /*Accounts*/
+export const accountKindSchema = z.enum(['cash', 'bank'])
+
 export const accountSchema = z.object({
     _id: z.string(),
     name: z.string(),
-    kind: z.string(),
+    kind: accountKindSchema,
     balance: z.number()
 })
 export const accountListSchema = z.array(accountSchema)
 
 export type Account = z.infer<typeof accountSchema>
 export type AccountList = z.infer<typeof accountListSchema>
+/***************/
 
 /*Movements*/
+//API respose
 export const movementSchema = z.object({
     _id: z.string(),
     type: z.enum(Object.keys(MOVEMENT_TYPES) as [keyof typeof MOVEMENT_TYPES, ...string[]], {
@@ -22,15 +26,16 @@ export const movementSchema = z.object({
     date: z.string(),//ISO string
     amount: z.number().positive(),
     description: z.string().optional(),
-    incomeAccountId: z.string().optional(),
-    expenseAccountId: z.string().optional(),
+    incomeAccount: accountSchema.optional(),
+    expenseAccount: accountSchema.optional(),
     tags: z.array(z.string())
 })
+export const movementListSchema = z.array(movementSchema)
 
+export type MovementList = z.infer<typeof movementListSchema>
 export type Movement = z.infer<typeof movementSchema>
 
-/***************/
-
+//Form validation
 /*Movement Form*/
 const movementFormInputSchema = z.object({
     type: z.string(),
@@ -41,6 +46,7 @@ const movementFormInputSchema = z.object({
     expenseAccountId: z.string().optional(),
     tags: z.array(z.string()).optional()
 })
+export type MovementFormInputs = z.input<typeof movementFormSchema>
 
 export const movementFormSchema = movementFormInputSchema
     .transform((data) => ({
@@ -122,7 +128,9 @@ export const movementFormSchema = movementFormInputSchema
             }
         }  )
 )
+export type MovementFormData = z.output<typeof movementFormSchema>
 
+//Payload to send to API
 export const movementDtoSchema = movementFormSchema.transform((data)=>(
     Object.fromEntries(
         Object.entries(data).filter(
@@ -130,7 +138,4 @@ export const movementDtoSchema = movementFormSchema.transform((data)=>(
         )
     )
 ))
-
-export type MovementFormInputs = z.input<typeof movementFormSchema>
-export type MovementFormData = z.output<typeof movementFormSchema>
 export type MovementDtoData = z.infer<typeof movementDtoSchema>
