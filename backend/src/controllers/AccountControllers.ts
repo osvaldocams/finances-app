@@ -50,24 +50,24 @@ export class AccountController {
         }
     }
 
-    static updateAccount = async (req: Request<{ id: string }, {}, { name?: string, kind?: string }>, res: Response) => {
-        try {
-            const { id } = req.params
-            const { name, kind } = req.body
-            const account = await Account.findById(id)
-            if (!account) {
-                return res.status(404).json({ error: 'Account not found' })
-            }
-            if (name) {
-                account.name = name
-            }
-            if (kind) {
-                account.kind = kind
-            }
-            await account.save()
-            res.json(account)
-        } catch (error) {
-            console.log(error)
-            res.status(500).json({ error: 'Error updating account' })
-        }
+    // static updateAccount = async (req: Request<{ id: string }, {}, { name?: string, kind?: string }>, res: Response) => {
+    //     try {
+    //         const { id } = req.params
+    //         const { name, kind } = req.body
+    //         const account = await Account.findById(id)
+    //         if (!account) {
+    //             return res.status(404).json({ error: 'Account not found' })
+    //         }
+    //         if (name) {
+    //             account.name = name
+    //         }
+    //         if (kind) {
+    //             account.kind = kind
+    //         }
+    //         await account.save()
+    //         res.json(account)
+    //     } catch (error) {
+    //         console.log(error)
+    //         res.status(500).json({ error: 'Error updating account' })
+    //     }
     }
