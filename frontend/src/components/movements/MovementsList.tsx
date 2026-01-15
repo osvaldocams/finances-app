@@ -30,7 +30,7 @@ export default function MovementsList({movements}: MovementListProps) {
                             <span className="text-gray-800 truncate">{movement.description}</span>
                             <span className="text-red-600 font-semibold text-right">{formatCurrency(movement.amount) }</span>
                             <Link
-                                to={'/movements'}
+                                to={`/movements/${movement._id}`}
                                 className="text-center text-blue-600 hover:text-blue-800 text-xs font-medium">
                                 Ver
                             </Link>
