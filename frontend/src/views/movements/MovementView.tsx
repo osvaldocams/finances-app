@@ -6,7 +6,8 @@ import { getMovements } from "../../api/MovementApi";
 export default function MovementView() {
 	const { data, isLoading, error} = useQuery({
 		queryKey: ['movements'],
-		queryFn: getMovements
+		queryFn: getMovements,
+		retry: false
 	})
 	if(isLoading)return <p>Cargando...</p>
 	if(error)return <p>Error fetching data</p>

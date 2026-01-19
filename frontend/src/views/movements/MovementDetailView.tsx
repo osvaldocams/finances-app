@@ -1,15 +1,32 @@
 
+import { useQuery } from '@tanstack/react-query'
 import { Tag, Edit2, Trash2, Plus, Calendar, ArrowRightLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import { getMovementById } from '../../api/MovementApi'
+import type { Movement } from '../../types'
+import { MOVEMENT_TYPES, type MovementType } from '../../constants/movementTypes'
+import { formatDate } from '../../helpers/formatDate'
+import { formatCurrency } from '../../helpers/formatCurrency'
 
 export default function MovementDetailView() {
+    const params = useParams()
+    const movementId = params.movementId!
+
+    const { data, isLoading, error} = useQuery<Movement>({
+		queryKey: ['movements',movementId],
+		queryFn: () => getMovementById(movementId),
+        retry: false
+	})
+	if(isLoading)return <p>Cargando...</p>
+	if(error)return <p>Error fetching data</p>
+	if(!data) return null
     return (
         <>
         <h1 className="text-5xl font-black">Detalle del Movimiento</h1>
         <p className="tect-2xl font-light text-gray-500 mt-5">Revisa el detalle de tu movimiento</p>
         <nav className="my-5">
             <Link 
-                to="/movements/create"
+                to="/movements"
                 className="bg-gray-400 hover:bg-gray-500 px-10 py-3 text-white text-xl font-bold cursor-pointer transition-colors rounded-lg"
             >
                 Volver a Mis Movimientos
@@ -18,27 +35,40 @@ export default function MovementDetailView() {
         <div className="mt-5 max-w-md mx-auto bg-white shadow-lg rounded-xl overflow-hidden border border-slate-100">
             {/* 1. Header: Tipo y Monto */}
             <div className="bg-slate-50 p-6 text-center border-b border-slate-100">
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-green-100 text-green-700 mb-2">
-                    Ingreso
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${MOVEMENT_TYPES[data.type as MovementType].bg} ${MOVEMENT_TYPES[data.type as MovementType].color} mb-2`}>
+                    {MOVEMENT_TYPES[data.type as MovementType].label}
                 </span>
-                <h2 className="text-3xl font-bold text-slate-800">$1,250.00</h2>
-                <p className="text-slate-500 text-sm mt-1 italic">"Pago de freelance proyecto web"</p>
+                <h2 className="text-3xl font-bold text-slate-800">{formatCurrency(data.amount)} </h2>
+                <p className="text-slate-500 text-sm mt-1 italic">"{data.description}"</p>
             </div>
-            <div className="p-6 space-y-6">
+            <div className="p-2 space-y-6">
                 {/* 2. Detalles Principales */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-start gap-3">
                         <Calendar className="w-5 h-5 text-slate-400 mt-0.5" />
                         <div>
                             <p className="text-xs text-slate-400 uppercase font-bold">Fecha</p>
-                            <p className="text-sm text-slate-700 font-medium">15 Ene, 2026</p>
+                            <p className="text-sm text-slate-700 font-medium">{formatDate(new Date(data.date))}</p>
                         </div>
                     </div>
                     <div className="flex items-start gap-3">
                         <ArrowRightLeft className="w-5 h-5 text-slate-400 mt-0.5" />
                         <div>
-                            <p className="text-xs text-slate-400 uppercase font-bold">Cuentas</p>
-                            <p className="text-sm text-slate-700 font-medium">BBVA → Ahorros</p>
+                            {data.type === 'income' || data.type ==='expense' ? (
+                                <div>
+                                    <p className="text-xs text-slate-400 uppercase font-bold">
+                                        {data.type === 'income' ? 'entra a:' : 'sale de:'}{' '}
+                                        <br />
+                                        <span className="text-xs text-slate-700  capitalize font-bold">{data.incomeAccount?.name || data.expenseAccount?.name}</span>
+                                    </p>
+                                </div>
+                            ):(
+                                <p className="text-xs text-slate-400 uppercase font-bold">
+                                    sale de: <span className="text-xs text-slate-700  capitalize font-bold">{data.expenseAccount?.name}</span> 
+                                    <br />
+                                    entra a: <span className="text-xs text-slate-700  capitalize font-bold">{data.incomeAccount?.name}</span> 
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -73,8 +103,17 @@ export default function MovementDetailView() {
                         ))}    
                     </div>
                 </div>
+                <hr className="border-slate-100" />
+                <div className='mt-8'>
+                        <button 
+                            //onClick={handleDelete}
+                            className="flex items-center gap-2 text-red-500 hover:text-red-700 font-bold transition-colors text-sm border border-red-200 px-4 py-2 rounded-lg hover:bg-red-50">
+                            <Trash2 className="w-4 h-4" />
+                            Eliminar Movimiento
+                        </button>                                                                 
+                    </div>
             </div>
         </div>
         </>
     )
-}    
+}
