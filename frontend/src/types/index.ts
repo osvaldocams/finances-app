@@ -24,7 +24,7 @@ export const movementSchema = z.object({
         message: "Selecciona un tipo de movimiento"
     }),
     date: z.string(),//ISO string
-    amount: z.number().positive(),
+    amount: z.coerce.number(),
     description: z.string().optional(),
     incomeAccount: accountSchema.optional(),
     expenseAccount: accountSchema.optional(),
