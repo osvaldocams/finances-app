@@ -7,6 +7,8 @@ export default function MovementView() {
 	const { data, isLoading, error} = useQuery({
 		queryKey: ['movements'],
 		queryFn: getMovements,
+		select: (movements) => [...movements].sort((a, b) => //FIXME:ordenar en movementController
+        new Date(b.date).getTime() - new Date(a.date).getTime()),
 		retry: false
 	})
 	if(isLoading)return <p>Cargando...</p>

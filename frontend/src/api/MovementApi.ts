@@ -1,20 +1,7 @@
-import { isAxiosError } from "axios"
 import api from "../lib/axios"
-import { movementListSchema, type Movement, type MovementDtoData } from "../types"
+import { movementListSchema, movementSchema, type Movement, type MovementDtoData } from "../types"
+import { handleApiError } from "./handleApiError"
 
-// express validation error format
-type ValidationError = {
-    location: string
-    msg: string
-    path: string
-    type: string
-    value: string
-}
-type ErrorResponse = {
-    error?: string
-    message?: string
-    errors?: ValidationError[]
-}
 
 export async function createMovement(dtoData:MovementDtoData){
     try {
@@ -22,44 +9,7 @@ export async function createMovement(dtoData:MovementDtoData){
         return data
     } catch (error) {
         //debugging logs for development only
-        if(import.meta.env.DEV){
-            console.group('Error creating movement')
-            console.log('data sent:', dtoData)
-        }
-        if (isAxiosError(error)){
-            if(error.response){
-                if(import.meta.env.DEV){
-                    console.log('status:', error.response.status)
-                    console.log('response data:', error.response.data)
-                    console.groupEnd()
-                }
-                //extract error message to throw
-                const responseData = error.response.data as ErrorResponse
-                let errorMessage: string
-                if(responseData.errors && responseData.errors.length > 0){
-                    errorMessage = responseData.errors[0].msg
-                }else if(responseData.error){
-                    errorMessage = responseData.error
-                }else if(responseData.message){
-                    errorMessage = responseData.message
-                }else{
-                    errorMessage = `Error ${error.response.status}: ${error.response.statusText}`
-                }
-                throw new Error(errorMessage) 
-            }
-            if(error.request){
-                if(import.meta.env.DEV){
-                    console.log('No response received')
-                    console.groupEnd()
-                }
-                throw new Error('No se pudo conectar con el servidor')
-            }
-        }
-        if(import.meta.env.DEV){
-            console.log('Unknown error:', error)
-            console.groupEnd()
-        }
-        throw new Error(error instanceof Error ? error.message : 'Error desconocido')
+        handleApiError(error, 'Error creating movement', dtoData)
     }
 }
 
@@ -68,96 +18,32 @@ export async function getMovements(){
         const {data} = await api.get('/movements')
         const response = movementListSchema.safeParse(data)
         if(!response.success){
-            console.log(response.error.format())
-            throw new Error('Error al mostrar los movimientos')
+            if(import.meta.env.DEV){
+                console.log('validation error:', response.error.format())
+            }
+            throw new Error('Error showing movements')
         }
         return response.data
     } catch (error) {
         //debugging logs for development only
-        if(import.meta.env.DEV){
-            console.group('Error fetching movements')
-            console.log('No data sent')
-        }
-        if (isAxiosError(error)){
-            if(error.response){
-                if(import.meta.env.DEV){
-                    console.log('status:', error.response.status)
-                    console.log('response data:', error.response.data)
-                    console.groupEnd()
-                }
-                //extract error message to throw
-                const responseData = error.response.data as ErrorResponse
-                let errorMessage: string
-                if(responseData.errors && responseData.errors.length > 0){
-                    errorMessage = responseData.errors[0].msg
-                }else if(responseData.error){
-                    errorMessage = responseData.error
-                }else if(responseData.message){
-                    errorMessage = responseData.message
-                }else{
-                    errorMessage = `Error ${error.response.status}: ${error.response.statusText}`
-                }
-                throw new Error(errorMessage) 
-            }
-            if(error.request){
-                if(import.meta.env.DEV){
-                    console.log('No response received')
-                    console.groupEnd()
-                }
-                throw new Error('No se pudo conectar con el servidor')
-            }
-        }
-        if(import.meta.env.DEV){
-            console.log('Unknown error:', error)
-            console.groupEnd()
-        }
-        throw new Error(error instanceof Error ? error.message : 'Error desconocido')
+        handleApiError(error, 'Error fetching movements')
     }
 }
 
 export async function getMovementById(id:Movement['_id']):Promise<Movement>{
     try {
         const {data} = await api.get(`/movements/${id}`)
-        return data
+        const response = movementSchema.safeParse(data)
+        if(!response.success){
+            if(import.meta.env.DEV){
+                console.log('validation error:', response.error.format())
+            }
+            throw new Error('The movement data is not in the expected format')
+        }
+        return response.data
     } catch (error) {
         //debugging logs for development only
-        if(import.meta.env.DEV){
-            console.group('Error fetching movement')
-        }
-        if (isAxiosError(error)){
-            if(error.response){
-                if(import.meta.env.DEV){
-                    console.log('status:', error.response.status)
-                    console.log('response data:', error.response.data)
-                    console.groupEnd()
-                }
-                //extract error message to throw
-                const responseData = error.response.data as ErrorResponse
-                let errorMessage: string
-                if(responseData.errors && responseData.errors.length > 0){
-                    errorMessage = responseData.errors[0].msg
-                }else if(responseData.error){
-                    errorMessage = responseData.error
-                }else if(responseData.message){
-                    errorMessage = responseData.message
-                }else{
-                    errorMessage = `Error ${error.response.status}: ${error.response.statusText}`
-                }
-                throw new Error(errorMessage) 
-            }
-            if(error.request){
-                if(import.meta.env.DEV){
-                    console.log('No response received')
-                    console.groupEnd()
-                }
-                throw new Error('No se pudo conectar con el servidor')
-            }
-        }
-        if(import.meta.env.DEV){
-            console.log('Unknown error:', error)
-            console.groupEnd()
-        }
-        throw new Error(error instanceof Error ? error.message : 'Error desconocido')
+        handleApiError(error, 'Error fetching movement', {id})
     }
 }
 export async function deleteMovement(id:Movement['_id']):Promise<Movement>{
@@ -166,42 +52,6 @@ export async function deleteMovement(id:Movement['_id']):Promise<Movement>{
         return data
     } catch (error) {
         //debugging logs for development only
-        if(import.meta.env.DEV){
-            console.group('Error fetching movement')
-        }
-        if (isAxiosError(error)){
-            if(error.response){
-                if(import.meta.env.DEV){
-                    console.log('status:', error.response.status)
-                    console.log('response data:', error.response.data)
-                    console.groupEnd()
-                }
-                //extract error message to throw
-                const responseData = error.response.data as ErrorResponse
-                let errorMessage: string
-                if(responseData.errors && responseData.errors.length > 0){
-                    errorMessage = responseData.errors[0].msg
-                }else if(responseData.error){
-                    errorMessage = responseData.error
-                }else if(responseData.message){
-                    errorMessage = responseData.message
-                }else{
-                    errorMessage = `Error ${error.response.status}: ${error.response.statusText}`
-                }
-                throw new Error(errorMessage) 
-            }
-            if(error.request){
-                if(import.meta.env.DEV){
-                    console.log('No response received')
-                    console.groupEnd()
-                }
-                throw new Error('No se pudo conectar con el servidor')
-            }
-        }
-        if(import.meta.env.DEV){
-            console.log('Unknown error:', error)
-            console.groupEnd()
-        }
-        throw new Error(error instanceof Error ? error.message : 'Error desconocido')
+        handleApiError(error, 'Error deleting movement', {id})
     }
 }

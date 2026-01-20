@@ -1,6 +1,6 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Tag, Edit2, Trash2, Plus, Calendar, ArrowRightLeft } from 'lucide-react'
+import { Tag, Edit2, Trash2, Plus, Calendar, ArrowRightLeft, AlertCircle } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { deleteMovement, getMovementById } from '../../api/MovementApi'
 import type { Movement } from '../../types'
@@ -16,14 +16,14 @@ export default function MovementDetailView() {
     const movementId = params.movementId!
 
     const { data, isLoading, error} = useQuery<Movement>({
-		queryKey: ['movements',movementId],
+		queryKey: ['movement',movementId],
 		queryFn: () => getMovementById(movementId),
-        retry: false
+        retry: 1
 	})
 
     const queryClient = useQueryClient()
 
-    const {mutate} = useMutation({
+    const {mutate:handleDelete, isPending: isDeleting} = useMutation({
         mutationFn: deleteMovement,
         onError: (error) => {
             toast.error(error.message)
@@ -31,18 +31,46 @@ export default function MovementDetailView() {
         onSuccess: () => {
             toast.success('Movimiento Eliminado Correctamente')
             queryClient.invalidateQueries({queryKey:['movements']})
+            queryClient.invalidateQueries({queryKey:['accounts']})
             navigate('/movements')
         }
     })
-    const handleDelete = async () => {
+    const onDelete = async () => {
         if(window.confirm('¿Estás seguro de eliminar este movimiento?')){
-            mutate(data!._id)
+            handleDelete(movementId)
         }
     }
 
-	if(isLoading)return <p>Cargando...</p>
-	if(error)return <p>Error fetching data</p>
+	if(isLoading){
+        return(
+            <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        )
+    }
+	if(error){
+        return(
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto mt-8">
+                <div className="flex items-start gap-3">
+                    <AlertCircle className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
+                    <div>
+                        <h3 className="text-lg font-semibold text-red-800">Error al cargar el movimiento</h3>
+                        <p className="text-red-700 mt-1">{error.message}</p>
+                        <Link
+                            to="/movements"
+                            className="inline-block mt-4 text-sm text-red-600 hover:text-red-800 font-medium"
+                        >
+                            ← Volver a movimientos
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 	if(!data) return null
+
+    const movementConfig = MOVEMENT_TYPES[data.type as MovementType]
+
     return (
         <>
         <h1 className="text-5xl font-black">Detalle del Movimiento</h1>
@@ -58,8 +86,8 @@ export default function MovementDetailView() {
         <div className="mt-5 max-w-md mx-auto bg-white shadow-lg rounded-xl overflow-hidden border border-slate-100">
             {/* 1. Header: Tipo y Monto */}
             <div className="bg-slate-50 p-6 text-center border-b border-slate-100">
-                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${MOVEMENT_TYPES[data.type as MovementType].bg} ${MOVEMENT_TYPES[data.type as MovementType].color} mb-2`}>
-                    {MOVEMENT_TYPES[data.type as MovementType].label}
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${movementConfig.bg} ${movementConfig.color} mb-2`}>
+                    {movementConfig.label}
                 </span>
                 <h2 className="text-3xl font-bold text-slate-800">{formatCurrency(data.amount)} </h2>
                 <p className="text-slate-500 text-sm mt-1 italic">"{data.description}"</p>
@@ -128,13 +156,24 @@ export default function MovementDetailView() {
                 </div>
                 <hr className="border-slate-100" />
                 <div className='mt-8'>
-                        <button 
-                            onClick={handleDelete}
-                            className="flex items-center gap-2 text-red-500 hover:text-red-700 font-bold transition-colors text-sm border border-red-200 px-4 py-2 rounded-lg hover:bg-red-50">
-                            <Trash2 className="w-4 h-4" />
-                            Eliminar Movimiento
-                        </button>                                                                 
-                    </div>
+                    <button 
+                        onClick={onDelete}
+                        disabled={isDeleting}
+                        className={`flex items-center gap-2 text-red-500 hover:text-red-700 font-bold transition-colors text-sm border border-red-200 px-4 py-2 rounded-lg hover:bg-red-50 ${isDeleting ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed': 'text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50'}`}
+                    >
+                        {isDeleting ? (
+                            <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400" />
+                                Eliminando...
+                            </>
+                        ):(
+                            <>
+                                <Trash2 className="w-4 h-4" />
+                                Eliminar Movimiento
+                            </>
+                        )}
+                    </button>                                                                 
+                </div>
             </div>
         </div>
         </>
