@@ -1,14 +1,17 @@
 
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Tag, Edit2, Trash2, Plus, Calendar, ArrowRightLeft } from 'lucide-react'
-import { Link, useParams } from 'react-router-dom'
-import { getMovementById } from '../../api/MovementApi'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { deleteMovement, getMovementById } from '../../api/MovementApi'
 import type { Movement } from '../../types'
 import { MOVEMENT_TYPES, type MovementType } from '../../constants/movementTypes'
 import { formatDate } from '../../helpers/formatDate'
 import { formatCurrency } from '../../helpers/formatCurrency'
+import { toast } from 'react-toastify'
 
 export default function MovementDetailView() {
+    const navigate = useNavigate()
+    
     const params = useParams()
     const movementId = params.movementId!
 
@@ -17,6 +20,26 @@ export default function MovementDetailView() {
 		queryFn: () => getMovementById(movementId),
         retry: false
 	})
+
+    const queryClient = useQueryClient()
+
+    const {mutate} = useMutation({
+        mutationFn: deleteMovement,
+        onError: (error) => {
+            toast.error(error.message)
+        },
+        onSuccess: () => {
+            toast.success('Movimiento Eliminado Correctamente')
+            queryClient.invalidateQueries({queryKey:['movements']})
+            navigate('/movements')
+        }
+    })
+    const handleDelete = async () => {
+        if(window.confirm('¿Estás seguro de eliminar este movimiento?')){
+            mutate(data!._id)
+        }
+    }
+
 	if(isLoading)return <p>Cargando...</p>
 	if(error)return <p>Error fetching data</p>
 	if(!data) return null
@@ -106,7 +129,7 @@ export default function MovementDetailView() {
                 <hr className="border-slate-100" />
                 <div className='mt-8'>
                         <button 
-                            //onClick={handleDelete}
+                            onClick={handleDelete}
                             className="flex items-center gap-2 text-red-500 hover:text-red-700 font-bold transition-colors text-sm border border-red-200 px-4 py-2 rounded-lg hover:bg-red-50">
                             <Trash2 className="w-4 h-4" />
                             Eliminar Movimiento

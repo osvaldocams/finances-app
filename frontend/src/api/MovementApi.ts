@@ -160,3 +160,48 @@ export async function getMovementById(id:Movement['_id']):Promise<Movement>{
         throw new Error(error instanceof Error ? error.message : 'Error desconocido')
     }
 }
+export async function deleteMovement(id:Movement['_id']):Promise<Movement>{
+    try {
+        const {data} = await api.delete(`/movements/${id}`)
+        return data
+    } catch (error) {
+        //debugging logs for development only
+        if(import.meta.env.DEV){
+            console.group('Error fetching movement')
+        }
+        if (isAxiosError(error)){
+            if(error.response){
+                if(import.meta.env.DEV){
+                    console.log('status:', error.response.status)
+                    console.log('response data:', error.response.data)
+                    console.groupEnd()
+                }
+                //extract error message to throw
+                const responseData = error.response.data as ErrorResponse
+                let errorMessage: string
+                if(responseData.errors && responseData.errors.length > 0){
+                    errorMessage = responseData.errors[0].msg
+                }else if(responseData.error){
+                    errorMessage = responseData.error
+                }else if(responseData.message){
+                    errorMessage = responseData.message
+                }else{
+                    errorMessage = `Error ${error.response.status}: ${error.response.statusText}`
+                }
+                throw new Error(errorMessage) 
+            }
+            if(error.request){
+                if(import.meta.env.DEV){
+                    console.log('No response received')
+                    console.groupEnd()
+                }
+                throw new Error('No se pudo conectar con el servidor')
+            }
+        }
+        if(import.meta.env.DEV){
+            console.log('Unknown error:', error)
+            console.groupEnd()
+        }
+        throw new Error(error instanceof Error ? error.message : 'Error desconocido')
+    }
+}
