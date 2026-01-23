@@ -8,6 +8,7 @@ import { MOVEMENT_TYPES, type MovementType } from '../../constants/movementTypes
 import { formatDate } from '../../helpers/formatDate'
 import { formatCurrency } from '../../helpers/formatCurrency'
 import { toast } from 'react-toastify'
+import PageHeader from '../../components/ui/PageHeader'
 
 export default function MovementDetailView() {
     const navigate = useNavigate()
@@ -73,16 +74,12 @@ export default function MovementDetailView() {
 
     return (
         <>
-        <h1 className="text-5xl font-black">Detalle del Movimiento</h1>
-        <p className="tect-2xl font-light text-gray-500 mt-5">Revisa el detalle de tu movimiento</p>
-        <nav className="my-5">
-            <Link 
-                to="/movements"
-                className="bg-gray-400 hover:bg-gray-500 px-10 py-3 text-white text-xl font-bold cursor-pointer transition-colors rounded-lg"
-            >
-                Volver a Mis Movimientos
-            </Link>
-        </nav>
+        <PageHeader
+            title="Detalle del Movimiento"
+            description="Revisa el detalle de tu movimiento"
+            backTo="/movements"
+            backLabel="Volver"
+        />
         <div className="mt-5 max-w-md mx-auto bg-white shadow-lg rounded-xl overflow-hidden border border-slate-100">
             {/* 1. Header: Tipo y Monto */}
             <div className="bg-slate-50 p-6 text-center border-b border-slate-100">

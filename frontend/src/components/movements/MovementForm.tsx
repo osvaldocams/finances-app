@@ -1,7 +1,7 @@
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import type { Account, MovementFormInputs } from "../../types";
 import { MOVEMENT_TYPES } from "../../constants/movementTypes";
-import ErrorMessage from "../ErrorMessage";
+import ErrorMessage from "../ui/ErrorMessage";
 import { useMemo } from "react";
 
 
