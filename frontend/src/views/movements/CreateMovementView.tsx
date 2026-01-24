@@ -47,7 +47,6 @@ export default function CreateMovementView() {
             toast.error(error.message)
         },
         onSuccess: (data) => {
-            console.log(data.message)
             toast.success(data.message)
             navigate('/movements')
         }
