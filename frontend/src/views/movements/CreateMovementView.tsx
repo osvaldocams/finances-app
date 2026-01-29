@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import MovementForm from "../../components/movements/MovementForm"
 import type { Account, MovementFormInputs } from "../../types"
@@ -9,6 +9,7 @@ import { createMovement } from "../../api/MovementApi"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { getAllAccounts } from "../../api/AccountApi"
 import {toast} from "react-toastify"
+import PageHeader from "../../components/ui/PageHeader"
 
 
 export default function CreateMovementView() {
@@ -46,7 +47,6 @@ export default function CreateMovementView() {
             toast.error(error.message)
         },
         onSuccess: (data) => {
-            console.log(data.message)
             toast.success(data.message)
             navigate('/movements')
         }
@@ -81,16 +81,12 @@ export default function CreateMovementView() {
 
     return (
         <>
-            <h1 className="text-5xl font-black">Crear Movimiento</h1>
-            <p className="tect-2xl font-light text-gray-500 mt-5">Llena el formulario para crear un nuevo movimiento</p>
-            <nav className="my-5">
-                <Link 
-                    to="/movements"
-                    className="bg-gray-400 hover:bg-gray-500 px-10 py-3 text-white text-xl font-bold cursor-pointer transition-colors rounded-lg"
-                >
-                    Volver a Mis Movimientos
-                </Link>
-            </nav>
+            <PageHeader
+                title="Crear Movimiento"
+                description="Llena el formulario para crear un nuevo movimiento"
+                backTo="/movements"
+                backLabel="Volver"
+            />
             
             <div className="flex-1 p-8">
                 <div className="bg-white p-6 rounded-lg shadow-xl border border-gray-200 max-w-2xl mx-auto">
@@ -126,7 +122,7 @@ export default function CreateMovementView() {
                         <div className="pt-4">
                             <input
                             type="submit"
-                            className={`w-full py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${!movementType ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' : ''}`}
+                            className={`w-full py-3 text-linen-light font-semibold rounded-lg shadow-md transition duration-200 focus:outline-none focus:ring-2 ${!movementType ? 'bg-clay-gray cursor-not-allowed' : 'bg-green-balance hover:bg-sage'}`}
                             value='Crear Movimiento'
                             disabled={!movementType}
                             />

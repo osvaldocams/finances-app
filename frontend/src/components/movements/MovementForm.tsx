@@ -1,9 +1,19 @@
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import type { Account, MovementFormInputs } from "../../types";
 import { MOVEMENT_TYPES } from "../../constants/movementTypes";
-import ErrorMessage from "../ErrorMessage";
-import { useMemo } from "react";
+import ErrorMessage from "../ui/ErrorMessage";
+import { useMemo, useState } from "react";
+import { Plus, X } from "lucide-react";
 
+// tags array mock
+const AVAILABLE_TAGS = [
+    { id: 'trabajo', label: 'Trabajo', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+    { id: 'gasto-trabajo', label: 'Gasto de trabajo', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+    { id: 'personal', label: 'Personal', color: 'bg-green-100 text-green-800 border-green-200' },
+    { id: 'propinas', label: 'Propinas', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+    { id: 'extra', label: 'Extra', color: 'bg-pink-100 text-pink-800 border-pink-200' },
+    { id: 'ahorro', label: 'Ahorro', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
+] as const
 
 type MovementFormProps = {
     register: UseFormRegister<MovementFormInputs>
@@ -17,7 +27,9 @@ type MovementFormProps = {
 
 
 export default function MovementForm({register, errors, movementType, accounts,selectedExpenseAccountId, selectedIncomeAccountId, isLoadingAccounts}:MovementFormProps) {
-    
+
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
     const { incomeAccounts, expenseAccounts } = useMemo(() => {
         let incomeBase = accounts
         let expenseBase = accounts
@@ -47,19 +59,29 @@ export default function MovementForm({register, errors, movementType, accounts,s
         }
     }, [accounts, movementType, selectedExpenseAccountId, selectedIncomeAccountId]);
 
+    const toggleTag = (tagId:string) => {
+        setSelectedTags(prev => {
+            if(prev.includes(tagId)){
+                return prev.filter(id => id !== tagId)
+            }
+            return [...prev, tagId]
+        })
+    }
+
     return (
-        <>
-            <div className="flex flex-col gap-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="space-y-5">
+            {/* movement types */}
+            <div>
+                <label className="block text-sm font-medium text-obsidian mb-2">
                     Tipo de Movimiento
                 </label>
                 <select
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                    className="w-full p-3 border border-green-balance rounded-lg focus:ring-sage focus:border-sage transition duration-150"
                     {...register('type')}
                 >
                     <option value="">--- Seleccionar ---</option>
                     {Object.entries(MOVEMENT_TYPES).map(([value, config]) => (
-                        <option 
+                        <option
                             key={value} 
                             value={value}
                         >
@@ -70,26 +92,121 @@ export default function MovementForm({register, errors, movementType, accounts,s
                 {errors.type && (
                     <ErrorMessage message={errors.type.message} />
                 )}
-                <label className="block text-sm font-medium text-gray-700 my-1 ">
-                    TAG
-                </label>
-                <select
-                    disabled={!movementType}
-                    {...register('tags')}
-                    className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ${!movementType ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                >
-                    <option value="">--- Seleccionar ---</option>
-                    <option value="ingreso">Trabajo</option>
-                    <option value="gasto">Gasto de trabajo</option>
-                    <option value="deposito">Gasto osvaldo</option>
-                    <option value="transferencia">Propinas</option>
-                </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* Tags */}
+            <div>
+                <div className="flex items-center justify-between mb-2 border-green-balance">
+                    <label className="block text-sm font-medium text-obsidian">
+                        Tags
+                    </label>
+                    <button
+                        type="button"
+                        disabled={!movementType}
+                        onClick={() => {
+                            // TODO: Abrir modal para crear nuevo tag
+                            console.log('Abrir modal de crear tag')
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-150 ${!movementType 
+                            ? 'bg-clay-gray text-linen-light cursor-not-allowed' 
+                            : 'bg-green-balance text-linen-light hover:bg-sage active:scale-95'
+                        }`}
+                    >
+                        <Plus className="w-3.5 h-3.5" />
+                        Nuevo tag
+                    </button>
+                </div>
+                {/* Pills de tags */}
+                <div className={`flex gap-2 overflow-x-auto p-2 rounded-lg border border-green-balance bg-linen-light
+                    ${!movementType ? 'opacity-50 pointer-events-none' : ''}`}>
+                        {AVAILABLE_TAGS.length > 0 ? (
+                            AVAILABLE_TAGS.map(tag => {
+                                const isSelected = selectedTags.includes(tag.id)
+                                return(
+                                    <button
+                                        key={tag.id}
+                                        type="button"
+                                        disabled={!movementType}
+                                        onClick={() => toggleTag(tag.id)}
+                                        className={`
+                                            shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all
+                                            ${isSelected 
+                                                ? `${tag.color} ring-2 ring-offset-1 ring-sage shadow-sm` 
+                                                : 'bg-white text-obsidian border-linen-light hover:border-clay-gray hover:shadow-sm'
+                                            }
+                                            ${!movementType ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                    >
+                                        {isSelected && <Plus className="w-3 h-3 rotate-45" />}
+                                        {tag.label}
+                                    </button>
+                                )
+                            })
+                        ) :(
+                            <div className="flex-1 text-center py-4">
+                                <p className="text-sm text-obsidian mb-2">No hay etiquetas disponibles</p>
+                                <button
+                                    type="button"
+                                    disabled={!movementType}
+                                    onClick={() => console.log('Abrir modal')}
+                                    className={`
+                                        inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg
+                                        ${!movementType
+                                            ? 'bg-clay-gray text-linen-light cursor-not-allowed'
+                                            : 'bg-green-balance text-linen-light hover:bg-sage'
+                                        }`}
+                                    >
+                                    <Plus className="w-4 h-4" />
+                                    Crear tu primera etiqueta
+                                </button>
+                            </div>
+                        )}
+                </div>
+                {/* Selected tags */}
+                {selectedTags.length > 0 && (
+                    <div className="mt-3 p-3 bg-sage-opaque rounded-lg border border-green-balance">
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs font-semibold text-green-balance">
+                                Seleccionados ({selectedTags.length})
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedTags([])}
+                                className="text-xs text-green-balance hover:text-sage font-medium transition-colors"
+                            >
+                                Limpiar Todo
+                            </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {selectedTags.map(tagId => {
+                                const tag = AVAILABLE_TAGS.find(t => t.id === tagId)
+                                if(!tag) return null
+                                return(
+                                    <span
+                                        key={tagId}
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${tag.color} shadow-sm`}
+                                    >
+                                        {tag.label}
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleTag(tagId)}
+                                            className="hover:bg-obsidian/10 rounded-full p-0.5 transition-colors"
+                                            aria-label={`Quitar ${tag.label}`}
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </span>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
+            </div>
+            
+            {/* Date and Amount */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-obsidian mb-2"
                     >
                     Fecha
                     </label>
@@ -97,7 +214,7 @@ export default function MovementForm({register, errors, movementType, accounts,s
                         disabled={!movementType}
                         type="date"
                         {...register('date')}
-                        className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ${!movementType ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                        className={`w-full p-3 border border-green-balance rounded-lg focus:ring-sage focus:border-sage transition duration-150 ${!movementType ? 'bg-linen-light cursor-not-allowed' : ''}`}
                     />
                     {errors.date && (
                         <ErrorMessage message={errors.date.message} />
@@ -106,7 +223,7 @@ export default function MovementForm({register, errors, movementType, accounts,s
 
                 <div>
                     <label
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-obsidian mb-2"
                     >
                     Monto ($)
                     </label>
@@ -115,7 +232,7 @@ export default function MovementForm({register, errors, movementType, accounts,s
                         type="number"
                         placeholder="Ej: 50.00"
                         {...register('amount', {valueAsNumber: true})}
-                        className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ${!movementType ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                        className={`w-full p-3 border border-green-balance rounded-lg focus:ring-sage focus:border-sage transition duration-150 ${!movementType ? 'bg-linen-light cursor-not-allowed' : ''}`}
                     />
                     {errors.amount && (
                         <ErrorMessage message={errors.amount.message} />
@@ -123,16 +240,17 @@ export default function MovementForm({register, errors, movementType, accounts,s
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* Accounts */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-obsidian mb-2"
                     >
                     Cuenta Ingreso
                     </label>
                     <select
                         disabled={isLoadingAccounts || !movementType || movementType === 'expense'}
-                        className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ${!movementType || movementType === 'expense' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                        className={`w-full p-3 border border-green-balance rounded-lg focus:ring-sage focus:border-sage transition duration-150 ${!movementType || movementType === 'expense' ? 'bg-linen-light cursor-not-allowed' : ''}`}
                         {...register('incomeAccountId')}
                     >
                         <option value="">
@@ -151,13 +269,13 @@ export default function MovementForm({register, errors, movementType, accounts,s
 
                 <div>
                     <label
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-obsidian mb-2"
                     >
                     Cuenta Egreso
                     </label>
                     <select
                         disabled={isLoadingAccounts || !movementType || movementType === 'income'}
-                        className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ${!movementType || movementType === 'income' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                        className={`w-full p-3 border border-green-balance rounded-lg focus:ring-sage focus:border-sage transition duration-150 ${!movementType || movementType === 'income' ? 'bg-linen-light cursor-not-allowed' : ''}`}
                         {...register('expenseAccountId')}
                     >
                         <option value="">
@@ -175,19 +293,20 @@ export default function MovementForm({register, errors, movementType, accounts,s
                 </div>
             </div>
 
+            {/* Description */}
             <div>
                 <label
-                    className= "block text-sm font-medium text-gray-700 mb-1" 
+                    className="block text-sm font-medium text-obsidian mb-2"
                 >
                 Descripción
                 </label>
                 <textarea
                     disabled={!movementType}
                     placeholder="Detalles del movimiento (Ej: Pago de renta, Venta freelance)."
-                    className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ${!movementType ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    className={`w-full p-3 border border-green-balance rounded-lg focus:ring-sage focus:border-sage transition duration-150 ${!movementType ? 'bg-linen-light cursor-not-allowed' : ''}`}
                     {...register('description')}
-                ></textarea>
+                />
             </div>
-        </>
+        </div>
     )
 }
