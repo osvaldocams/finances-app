@@ -43,7 +43,7 @@ export default function AppLayout() {
                         {/* Logo */}
                         <Link to="/" className="flex items-center">
                             <div className="text-linen-light text-xl sm:text-2xl font-bold">
-                                💰 FinanceApp
+                                💰 MonkFlow
                             </div>
                         </Link>
 
