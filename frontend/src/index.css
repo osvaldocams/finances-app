@@ -9,6 +9,7 @@
     --color-obsidian: #2d3436; 
     --color-linen-light: #f7f7f7;
     --color-sage: #a3c9a8;
+    --color-sage-opaque: rgba(163, 201, 168, 0.3);
     /*secondary*/
     --color-clay-gray: #b2b8b8;
     --color-clay-gray-opaque: rgba(178, 184, 184, 0.1);

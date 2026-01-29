@@ -122,7 +122,7 @@ export default function CreateMovementView() {
                         <div className="pt-4">
                             <input
                             type="submit"
-                            className={`w-full py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${!movementType ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' : ''}`}
+                            className={`w-full py-3 text-linen-light font-semibold rounded-lg shadow-md transition duration-200 focus:outline-none focus:ring-2 ${!movementType ? 'bg-clay-gray cursor-not-allowed' : 'bg-green-balance hover:bg-sage'}`}
                             value='Crear Movimiento'
                             disabled={!movementType}
                             />
