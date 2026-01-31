@@ -25,7 +25,7 @@ router.post('/',
             throw new Error('Tag already exist')
         }
     }),
-    body('color').optional().isString().trim(),
+    body('variant').optional().isString().trim(),
     handleInputErrors,
     TagController.createTag
 )
@@ -40,7 +40,7 @@ router.get('/:id',
     TagController.getTagById
 )
 
-//PATCH update name & color
+//PATCH update name & variant
 router.patch('/:id',
     param('id').isMongoId().withMessage('invalid tag id'),
     body('name')
@@ -49,7 +49,7 @@ router.patch('/:id',
     .trim()
     .isLength({min:2, max:30})
     .withMessage('Tag name must be between 2 and 30 characters'),
-    body('color').optional().isString().trim(),
+    body('variant').optional().isString().trim(),
     handleInputErrors,
     TagController.updateTag
 )
