@@ -5,7 +5,7 @@ import Movement from "../models/Movement";
 
 type UpdateTagBody = {
         name?: ITag['name']
-        color?: ITag['color']
+        variant?: ITag['variant']
     }
 
 export class TagController {
@@ -13,8 +13,8 @@ export class TagController {
     static createTag = async (req: Request<{},{},ITag>, res: Response) => {
 
         try {
-            const { name, color } = req.body
-            const tag = new Tag({name, color})
+            const { name, variant } = req.body
+            const tag = new Tag({name, variant})
             await tag.save()
             return res.status(201).json(tag)
 
@@ -55,7 +55,7 @@ export class TagController {
     static updateTag = async (req: Request<{id:string},{},UpdateTagBody>, res: Response) => {
         try {
             const { id } = req.params
-            const { name, color} = req.body
+            const { name, variant } = req.body
 
             //find tag
             const tag = await Tag.findById(id)
@@ -78,9 +78,9 @@ export class TagController {
                 tag.slug = slug
             }
 
-            //color
-            if(typeof color !== 'undefined'){
-                tag.color = color
+            //variant
+            if(typeof variant !== 'undefined'){
+                tag.variant = variant
             }
             //save
             await tag.save()
