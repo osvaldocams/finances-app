@@ -1,5 +1,6 @@
 import {z} from 'zod'
 import {MOVEMENT_TYPES} from '../constants/movementTypes'
+import { TAG_COLORS } from '../constants/tagColors'
 
 /*Accounts*/
 export const accountKindSchema = z.enum(['cash', 'bank'])
@@ -14,6 +15,20 @@ export const accountListSchema = z.array(accountSchema)
 
 export type Account = z.infer<typeof accountSchema>
 export type AccountList = z.infer<typeof accountListSchema>
+/***************/
+/*Tags*/
+export const tagSchema = z.object({
+    _id: z.string(),
+    name: z.string(),
+    slug: z.string(),
+    variant: z.enum(Object.keys(TAG_COLORS) as [keyof typeof TAG_COLORS, ...string[]], {
+        message: "Selecciona un tipo de movimiento"
+    }),
+})
+export const tagListSchema = z.array(tagSchema)
+
+export type Tag = z.infer<typeof tagSchema>
+export type TagList = z.infer<typeof tagListSchema>
 /***************/
 
 /*Movements*/

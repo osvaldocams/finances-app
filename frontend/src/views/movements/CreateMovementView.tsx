@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import MovementForm from "../../components/movements/MovementForm"
-import type { Account, MovementFormInputs } from "../../types"
+import type { Account, MovementFormInputs, Tag } from "../../types"
 import { movementDtoSchema, movementFormSchema } from "../../types"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect, useState } from "react"
@@ -10,6 +10,7 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { getAllAccounts } from "../../api/AccountApi"
 import {toast} from "react-toastify"
 import PageHeader from "../../components/ui/PageHeader"
+import { getTags } from "../../api/TagApi"
 
 
 export default function CreateMovementView() {
@@ -36,9 +37,13 @@ export default function CreateMovementView() {
     const incomeAccountId = watch('incomeAccountId')
     const expenseAccountId = watch('expenseAccountId')
 
-    const { data:Account = [], isLoading} = useQuery<Account[]>({
+    const { data:Account = [], isLoading:isLoadingAccounts} = useQuery<Account[]>({
         queryKey: ['accounts'],
         queryFn: getAllAccounts
+    })    
+    const { data:Tags = [], isLoading:isLoadingTags} = useQuery<Tag[]>({
+        queryKey: ['tags'],
+        queryFn: getTags
     })    
     
     const { mutate } = useMutation({
@@ -116,7 +121,9 @@ export default function CreateMovementView() {
                             accounts={Account}
                             selectedExpenseAccountId={expenseAccountId}
                             selectedIncomeAccountId={incomeAccountId}
-                            isLoadingAccounts={isLoading}
+                            isLoadingAccounts={isLoadingAccounts}
+                            Tags={Tags}
+                            isLoadingTags={isLoadingTags}
                         />
 
                         <div className="pt-4">

@@ -1,19 +1,10 @@
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
-import type { Account, MovementFormInputs } from "../../types";
+import type { Account, MovementFormInputs, Tag } from "../../types";
 import { MOVEMENT_TYPES } from "../../constants/movementTypes";
 import ErrorMessage from "../ui/ErrorMessage";
 import { useMemo, useState } from "react";
 import { Plus, X } from "lucide-react";
-
-// tags array mock
-const AVAILABLE_TAGS = [
-    { id: 'trabajo', label: 'Trabajo', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-    { id: 'gasto-trabajo', label: 'Gasto de trabajo', color: 'bg-purple-100 text-purple-800 border-purple-200' },
-    { id: 'personal', label: 'Personal', color: 'bg-green-100 text-green-800 border-green-200' },
-    { id: 'propinas', label: 'Propinas', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-    { id: 'extra', label: 'Extra', color: 'bg-pink-100 text-pink-800 border-pink-200' },
-    { id: 'ahorro', label: 'Ahorro', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
-] as const
+import { TAG_COLORS } from "../../constants/tagColors";
 
 type MovementFormProps = {
     register: UseFormRegister<MovementFormInputs>
@@ -23,10 +14,22 @@ type MovementFormProps = {
     selectedExpenseAccountId?:string
     selectedIncomeAccountId?:string
     isLoadingAccounts:boolean
+    Tags:Tag[]
+    isLoadingTags:boolean
 }
 
 
-export default function MovementForm({register, errors, movementType, accounts,selectedExpenseAccountId, selectedIncomeAccountId, isLoadingAccounts}:MovementFormProps) {
+export default function MovementForm({
+    register, 
+    errors, 
+    movementType, 
+    accounts,
+    selectedExpenseAccountId,
+    selectedIncomeAccountId,
+    isLoadingAccounts,
+    Tags,
+    isLoadingTags
+}:MovementFormProps) {
 
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
@@ -119,25 +122,26 @@ export default function MovementForm({register, errors, movementType, accounts,s
                 {/* Pills de tags */}
                 <div className={`flex gap-2 overflow-x-auto p-2 rounded-lg border border-green-balance bg-linen-light
                     ${!movementType ? 'opacity-50 pointer-events-none' : ''}`}>
-                        {AVAILABLE_TAGS.length > 0 ? (
-                            AVAILABLE_TAGS.map(tag => {
-                                const isSelected = selectedTags.includes(tag.id)
+                        {Tags.length > 0 ? (
+                            Tags.map(tag => {
+                                const config = TAG_COLORS[tag.variant as keyof typeof TAG_COLORS]
+                                const isSelected = selectedTags.includes(tag._id)
                                 return(
                                     <button
-                                        key={tag.id}
+                                        key={tag._id}
                                         type="button"
                                         disabled={!movementType}
-                                        onClick={() => toggleTag(tag.id)}
+                                        onClick={() => toggleTag(tag._id)}
                                         className={`
                                             shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all
                                             ${isSelected 
-                                                ? `${tag.color} ring-2 ring-offset-1 ring-sage shadow-sm` 
-                                                : 'bg-white text-obsidian border-linen-light hover:border-clay-gray hover:shadow-sm'
+                                                ? `${tag.variant} ${config.text} ${config.selected} ring-2 ring-offset-1 ring-sage shadow-sm` 
+                                                : `${config.text} ${config.bg} border-linen-light hover:border-clay-gray hover:shadow-sm`
                                             }
                                             ${!movementType ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                     >
                                         {isSelected && <Plus className="w-3 h-3 rotate-45" />}
-                                        {tag.label}
+                                        {tag.slug}
                                     </button>
                                 )
                             })
@@ -178,19 +182,20 @@ export default function MovementForm({register, errors, movementType, accounts,s
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {selectedTags.map(tagId => {
-                                const tag = AVAILABLE_TAGS.find(t => t.id === tagId)
+                                const tag = Tags.find(t => t._id === tagId)
                                 if(!tag) return null
+                                const config = TAG_COLORS[tag.variant as keyof typeof TAG_COLORS]
                                 return(
                                     <span
                                         key={tagId}
-                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${tag.color} shadow-sm`}
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${config.text} ${config.selected} shadow-sm`}
                                     >
-                                        {tag.label}
+                                        {tag.slug}
                                         <button
                                             type="button"
                                             onClick={() => toggleTag(tagId)}
                                             className="hover:bg-obsidian/10 rounded-full p-0.5 transition-colors"
-                                            aria-label={`Quitar ${tag.label}`}
+                                            aria-label={`Quitar ${tag.slug}`}
                                         >
                                             <X className="w-3 h-3" />
                                         </button>
